@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "3911693667",
+    "project_id": "atlas-gold-4c7a0",
+    "storage_bucket": "atlas-gold-4c7a0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:3911693667:android:532eca42966d832bbb0f56",
+        "android_client_info": {
+          "package_name": "com.example.atlas_kannur_admin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCUeCYRFc8eNCI7ri5leyVIu5CgFHmezR8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
