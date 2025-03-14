@@ -269,7 +269,7 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
   String _selectStaffName = "";
   List staffList = [];
   String? selectSchemeType;
-  final List<String> schemeTypeList = ["Ponkoot", "Swarna Nidhi"];
+  final List<String> schemeTypeList = ["1 Year", "2 Year"];
 
   String? selectOdType;
   final List<String> orderAdvList = ["Gold", "Cash"];
@@ -337,7 +337,7 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
                               });
 
                               createCustId(
-                                  selectSchemeType == "Ponkoot" ? "PON" : "SN");
+                                  selectSchemeType == "1 Year" ? "ONE" : "TWO");
                             },
                             items: schemeTypeList
                                 .map<DropdownMenuItem<String>>((String value) {
@@ -1036,28 +1036,28 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
       }
 
       if (userList.length > 0) {
-        if (scheme == "PON") {
+        if (scheme == "ONE") {
           // print("-------- ex pon -------");
           setState(() {
-            custid = "PON_${counter[0]["altr_config"]}";
+            custid = "ONE_${counter[0]["altr_config"]}";
             custIdCntrl.text = custid;
           });
         } else {
           // print("-------- ex sn -------");
           setState(() {
-            custid = "SN_${counter[0]["altr_config2"]}";
+            custid = "TWO_${counter[0]["altr_config2"]}";
             custIdCntrl.text = custid;
           });
         }
       } else {
-        if (scheme == "PON") {
+        if (scheme == "ONE") {
           setState(() {
-            custid = "PON_1";
+            custid = "ONE_1";
             custIdCntrl.text = custid;
           });
         } else {
           setState(() {
-            custid = "SN_1";
+            custid = "TWO_1";
             custIdCntrl.text = custid;
           });
         }
