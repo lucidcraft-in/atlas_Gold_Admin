@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:month_picker_dialog/month_picker_dialog.dart';
+// Remove the month_picker_dialog import
+// import 'package:month_picker_dialog/month_picker_dialog.dart';
 import '../../constant/colors.dart';
 import 'package:provider/provider.dart';
 import '../../providers/collections.dart';
@@ -9,6 +10,9 @@ import '../../providers/user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:ui';
+// Import our custom month picker
+import '../../widget/monthPicker.dart';
+// Make sure to create this file with our MonthPicker
 
 class StaffReprotScreen extends StatefulWidget {
   StaffReprotScreen(
@@ -17,8 +21,6 @@ class StaffReprotScreen extends StatefulWidget {
   var commission;
   Map staff;
   Staff db;
-
-  // const StaffReprotScreen({ Key key }) : super(key: key);
 
   @override
   State<StaffReprotScreen> createState() => _StaffReprotScreenState();
@@ -34,6 +36,7 @@ class _StaffReprotScreenState extends State<StaffReprotScreen> {
   DateTime selectedDate = DateTime.now();
   double commission = 0;
   int? branchId;
+
   initialise() {
     dbUser = User();
     dbUser!.initiliase();
@@ -45,10 +48,6 @@ class _StaffReprotScreenState extends State<StaffReprotScreen> {
         setState(() {
           userLst = value;
           totalBalance = userLst[0]['totalAmount'];
-
-          // recivedFromStaff = userLst[0]['recivedFromStaff'];
-          // pendingBalanceOfStaff = totalBalance - recivedFromStaff;
-          // totalCommission(totalBalance);
         });
       }
       isLoad = false;
@@ -133,18 +132,16 @@ class _StaffReprotScreenState extends State<StaffReprotScreen> {
                       setState(() {
                         isLoad = true;
                       });
-                      showMonthPicker(
+                      // Replace showMonthPicker with our custom showCustomMonthPicker
+                      showCustomMonthPicker(
                         context: context,
+                        initialDate: selectedDate,
                         firstDate: DateTime(DateTime.now().year - 1, 5),
                         lastDate: DateTime(DateTime.now().year + 1, 9),
-                        initialDate: selectedDate ?? DateTime.now(),
-                        // locale: Locale("en"),
                       ).then((date) {
                         if (date != null) {
                           setState(() {
                             selectedDate = date;
-                            // print("selected Date===")
-                            // print(selectedDate);
                             recivedFromStaff = 0;
                             pendingBalanceOfStaff = 0;
                             totalBalance = 0;
@@ -224,132 +221,128 @@ class _StaffReprotScreenState extends State<StaffReprotScreen> {
             Padding(
               padding: const EdgeInsets.all(10.0),
               child: Container(
-                  width: double.infinity,
-                  child: isLoad == false
-                      ? isCollectionList == false
-                          ? userLst.length > 0
-                              ? ListView.builder(
-                                  itemCount: userLst.length,
-                                  shrinkWrap: true,
-                                  itemBuilder:
-                                      (BuildContext context, int index) {
-                                    return Column(
-                                      children: <Widget>[
-                                        ListTile(
-                                          tileColor: Colors.white,
-                                          title: Row(
-                                            children: [
-                                              Text(
-                                                "User Name : ",
-                                                style: TextStyle(
-                                                    fontSize: 13,
-                                                    color: Colors.grey[700]),
-                                              ),
-                                              Text(
-                                                ' ${userLst[index]['name']}'
-                                                    .toUpperCase(),
-                                                style: TextStyle(
+                width: double.infinity,
+                child: isLoad == false
+                    ? isCollectionList == false
+                        ? userLst.length > 0
+                            ? ListView.builder(
+                                itemCount: userLst.length,
+                                shrinkWrap: true,
+                                itemBuilder: (BuildContext context, int index) {
+                                  return Column(
+                                    children: <Widget>[
+                                      ListTile(
+                                        tileColor: Colors.white,
+                                        title: Row(
+                                          children: [
+                                            Text(
+                                              "User Name : ",
+                                              style: TextStyle(
                                                   fontSize: 13,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              )
-                                            ],
-                                          ),
-                                          subtitle: Row(
-                                            children: [
-                                              Text(
-                                                "Collection Amount : ",
-                                                style: TextStyle(fontSize: 13),
+                                                  color: Colors.grey[700]),
+                                            ),
+                                            Text(
+                                              ' ${userLst[index]['name']}'
+                                                  .toUpperCase(),
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w500,
                                               ),
-                                              Text(
-                                                userLst[index]
-                                                        ['userMonthcollection']
-                                                    .toString(),
-                                                style: TextStyle(
-                                                    color: Colors.black,
-                                                    fontSize: 13,
-                                                    fontWeight:
-                                                        FontWeight.w500),
-                                              )
-                                            ],
-                                          ),
-                                          leading: CircleAvatar(
-                                              child: Icon(Icons.account_box)),
-                                          onTap: () {},
+                                            )
+                                          ],
                                         ),
-                                      ],
-                                    );
-                                  })
-                              : Center(
-                                  child: Text(
-                                    "No data Available",
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18),
-                                  ),
-                                )
-                          : recivedAmtStaff.isNotEmpty
-                              ? ListView.builder(
-                                  itemCount: recivedAmtStaff.length,
-                                  shrinkWrap: true,
-                                  itemBuilder:
-                                      (BuildContext context, int index) {
-                                    return Column(
-                                      children: <Widget>[
-                                        ListTile(
-                                          tileColor: Colors.white,
-                                          title: Row(
-                                            children: [
-                                              Text(
-                                                DateFormat("dd-MM-yyyy")
-                                                    .format(
-                                                        recivedAmtStaff[index]
-                                                                ['date']
-                                                            .toDate())
-                                                    .toUpperCase(),
-                                                style: TextStyle(
+                                        subtitle: Row(
+                                          children: [
+                                            Text(
+                                              "Collection Amount : ",
+                                              style: TextStyle(fontSize: 13),
+                                            ),
+                                            Text(
+                                              userLst[index]
+                                                      ['userMonthcollection']
+                                                  .toString(),
+                                              style: TextStyle(
+                                                  color: Colors.black,
                                                   fontSize: 13,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              )
-                                            ],
-                                          ),
-                                          subtitle: Row(
-                                            children: [
-                                              Text(
-                                                "Recived Amount : ",
-                                                style: TextStyle(fontSize: 13),
-                                              ),
-                                              Text(
-                                                recivedAmtStaff[index]
-                                                        ['paidAmount']
-                                                    .toString(),
-                                                style: TextStyle(
-                                                    color: Colors.black,
-                                                    fontSize: 13,
-                                                    fontWeight:
-                                                        FontWeight.w500),
-                                              )
-                                            ],
-                                          ),
-                                          leading: CircleAvatar(
-                                              child: Icon(Icons.account_box)),
-                                          onTap: () {},
+                                                  fontWeight: FontWeight.w500),
+                                            )
+                                          ],
                                         ),
-                                      ],
-                                    );
-                                  })
-                              : Center(
-                                  child: Text(
-                                    "No data Available",
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18),
-                                  ),
-                                )
-                      : Center(
-                          child: CircularProgressIndicator(),
-                        )),
+                                        leading: CircleAvatar(
+                                            child: Icon(Icons.account_box)),
+                                        onTap: () {},
+                                      ),
+                                    ],
+                                  );
+                                })
+                            : Center(
+                                child: Text(
+                                  "No data Available",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18),
+                                ),
+                              )
+                        : recivedAmtStaff.isNotEmpty
+                            ? ListView.builder(
+                                itemCount: recivedAmtStaff.length,
+                                shrinkWrap: true,
+                                itemBuilder: (BuildContext context, int index) {
+                                  return Column(
+                                    children: <Widget>[
+                                      ListTile(
+                                        tileColor: Colors.white,
+                                        title: Row(
+                                          children: [
+                                            Text(
+                                              DateFormat("dd-MM-yyyy")
+                                                  .format(recivedAmtStaff[index]
+                                                          ['date']
+                                                      .toDate())
+                                                  .toUpperCase(),
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            )
+                                          ],
+                                        ),
+                                        subtitle: Row(
+                                          children: [
+                                            Text(
+                                              "Recived Amount : ",
+                                              style: TextStyle(fontSize: 13),
+                                            ),
+                                            Text(
+                                              recivedAmtStaff[index]
+                                                      ['paidAmount']
+                                                  .toString(),
+                                              style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w500),
+                                            )
+                                          ],
+                                        ),
+                                        leading: CircleAvatar(
+                                            child: Icon(Icons.account_box)),
+                                        onTap: () {},
+                                      ),
+                                    ],
+                                  );
+                                })
+                            : Center(
+                                child: Text(
+                                  "No data Available",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18),
+                                ),
+                              )
+                    : Center(
+                        child: CircularProgressIndicator(),
+                      ),
+              ),
             ),
           ],
         ),
@@ -411,7 +404,6 @@ class _StaffReprotScreenState extends State<StaffReprotScreen> {
                     ),
                     Text(
                       "${totalBalance - recivedFromStaff}",
-                      // pendingBalanceOfStaff.toString(),
                       style:
                           TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
                     ),
@@ -421,25 +413,6 @@ class _StaffReprotScreenState extends State<StaffReprotScreen> {
               SizedBox(
                 height: 5,
               ),
-              // Expanded(
-              //   child: Row(
-              //     mainAxisAlignment: MainAxisAlignment.spaceAround,
-              //     children: [
-              //       Text(
-              //         "Total Commission",
-              //         style: TextStyle(
-              //             fontWeight: FontWeight.w400, fontSize: 13),
-              //       ),
-              //       Text(
-              //         userLst != null
-              //             ? "${commission}"
-              //             : 0.0.toString(),
-              //         style: TextStyle(
-              //             fontWeight: FontWeight.w500, fontSize: 16),
-              //       ),
-              //     ],
-              //   ),
-              // ),
               SizedBox(
                 height: 5,
               ),

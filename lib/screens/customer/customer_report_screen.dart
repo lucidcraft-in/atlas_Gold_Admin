@@ -523,7 +523,6 @@ class _CustomerReportScreenState extends State<CustomerReportScreen> {
                                   child: Column(
                                     children: <Widget>[
                                       Container(
-                                        height: 100,
                                         padding: EdgeInsets.all(8),
                                         child: Row(
                                           children: [
@@ -587,9 +586,43 @@ class _CustomerReportScreenState extends State<CustomerReportScreen> {
                                                         style: TextStyle(
                                                             fontSize: 13,
                                                             color:
-                                                                Colors.black),
+                                                                Color.fromARGB(
+                                                                    255,
+                                                                    44,
+                                                                    156,
+                                                                    119)),
                                                       )
                                                     ],
+                                                  ),
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      Text(
+                                                        "Paid Gram : ",
+                                                        style: TextStyle(
+                                                          fontSize: 13,
+                                                        ),
+                                                      ),
+                                                      //  purchaseGram = paidGram = purchaseGram;
+                                                      Text(
+                                                        filterList[index]
+                                                                ["paidGram"]
+                                                            .toStringAsFixed(3),
+                                                        style: TextStyle(
+                                                            fontSize: 13,
+                                                            color:
+                                                                Color.fromARGB(
+                                                                    255,
+                                                                    44,
+                                                                    156,
+                                                                    119)),
+                                                      )
+                                                    ],
+                                                  ),
+                                                  SizedBox(
+                                                    height: 5,
                                                   ),
                                                   Row(
                                                     mainAxisAlignment:
@@ -609,16 +642,41 @@ class _CustomerReportScreenState extends State<CustomerReportScreen> {
                                                         style: TextStyle(
                                                             fontSize: 13,
                                                             color:
-                                                                Colors.black),
+                                                                Color.fromARGB(
+                                                                    255,
+                                                                    196,
+                                                                    52,
+                                                                    52)),
                                                       )
                                                     ],
                                                   ),
-                                                  Container(
-                                                    width: double.infinity,
-                                                    height: .6,
-                                                    color: Colors
-                                                        .blueGrey.shade100,
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      Text(
+                                                        "Purchase Gram: ",
+                                                        style: TextStyle(
+                                                          fontSize: 13,
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        filterList[index]
+                                                                ["purchaseGram"]
+                                                            .toStringAsFixed(3),
+                                                        style: TextStyle(
+                                                            fontSize: 13,
+                                                            color:
+                                                                Color.fromARGB(
+                                                                    255,
+                                                                    196,
+                                                                    52,
+                                                                    52)),
+                                                      )
+                                                    ],
                                                   ),
+                                                  Divider(),
                                                   Row(
                                                     mainAxisAlignment:
                                                         MainAxisAlignment
@@ -633,7 +691,31 @@ class _CustomerReportScreenState extends State<CustomerReportScreen> {
                                                       Text(
                                                         filterList[index]
                                                                 ["custBalance"]
-                                                            .toString(),
+                                                            .toStringAsFixed(2),
+                                                        style: TextStyle(
+                                                            fontSize: 14,
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                            color:
+                                                                Colors.black),
+                                                      )
+                                                    ],
+                                                  ),
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      Text(
+                                                        "Balance Weight: ",
+                                                        style: TextStyle(
+                                                          fontSize: 14,
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        filterList[index]
+                                                                ["balanceGram"]
+                                                            .toStringAsFixed(3),
                                                         style: TextStyle(
                                                             fontSize: 14,
                                                             fontWeight:

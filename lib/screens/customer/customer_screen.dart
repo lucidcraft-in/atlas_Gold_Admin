@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../../constant/colors.dart';
@@ -8,6 +9,8 @@ import '../../providers/user.dart';
 import 'customer_view.dart';
 import '../customer/update_customer.dart';
 import '../home_screen.dart';
+import 'pay_amount.dart';
+import 'setOpeningBalance.dart';
 
 class CustomerScreen extends StatefulWidget {
   static const routeName = '/customer-screen';
@@ -34,13 +37,13 @@ class _CustomerScreenState extends State<CustomerScreen> {
   late bool _IsSearching;
 
   final TextEditingController _searchQuery = new TextEditingController();
-  initialise() {
+  initialise(String _staffId) {
     db = User();
     db!.initiliase();
     // print("============");
     // print(staffType);
     // print(staffId);
-    db!.readByStaff(staffType, staffId).then((value) {
+    db!.readByStaff(staffType, _staffId).then((value) {
       if (value != null) {
         setState(() {
           userList = filterList = value!;
@@ -64,12 +67,11 @@ class _CustomerScreenState extends State<CustomerScreen> {
       staffType = staff['type'];
       staffId = staff['id'];
     });
+    initialise(staffId);
 
     setState(() {
       branchId = staff['branch'];
     });
-
-    initialise();
   }
 
   @override
@@ -108,17 +110,6 @@ class _CustomerScreenState extends State<CustomerScreen> {
       appBar: AppBar(
           backgroundColor: useColor.homeIconColor,
           title: appBarTitle,
-          leading: IconButton(
-              icon: Icon(
-                Icons.arrow_back,
-                color: Colors.white,
-              ),
-              onPressed: () {
-                Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(
-                        builder: (BuildContext context) => HomeScreen()),
-                    (Route<dynamic> route) => false);
-              }),
           actions: <Widget>[
             new IconButton(
               icon: actionIcon,
@@ -173,11 +164,51 @@ class _CustomerScreenState extends State<CustomerScreen> {
                   child: Icon(Icons.add),
                   backgroundColor: useColor.homeIconColor,
                   foregroundColor: Colors.white,
-                  onPressed: () => {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => CreateCustomerScreen()))
+                  onPressed: () async {
+                    final newCustomerId = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => CreateCustomerScreen()),
+                    );
+
+                    // if (newCustomerId != null) {
+                    //   print('New Customer ID: $newCustomerId');
+
+                    //   var userData =
+                    //       await Provider.of<User>(context, listen: false)
+                    //           .readCustAfterCreate(
+                    //               staffType, staffId, newCustomerId);
+
+                    //   print("Fetched User Data: $userData");
+
+                    //   if (userData != null) {
+                    //     initialise();
+
+                    //     // Wait for transaction to complete
+                    //     final transactionSuccess = await Navigator.push(
+                    //       context,
+                    //       MaterialPageRoute(
+                    //         builder: (context) => TransactionForm(
+                    //           user: userData,
+                    //           userid: userData['id'],
+                    //           custName: userData['name'],
+                    //           token: userData['token'],
+                    //         ),
+                    //       ),
+                    //     );
+
+                    //     // If transaction is successful, navigate to CustomerViewScreen
+                    //     if (transactionSuccess == true) {
+                    //       Navigator.push(
+                    //         context,
+                    //         MaterialPageRoute(
+                    //           builder: (context) => CustomerViewScreen(
+                    //               dbUser: db!, user: userData),
+                    //         ),
+                    //       );
+                    //     }
+                    //   }
+                    // }
                   },
                 )
               : Container(),
@@ -489,7 +520,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
 
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text("${name} dismissed")));
-    initialise();
+    initialise(staffId);
   }
 
   edit(Map user, int index, BuildContext context) async {

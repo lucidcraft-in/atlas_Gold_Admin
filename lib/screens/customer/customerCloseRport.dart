@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:month_picker_dialog/month_picker_dialog.dart';
+// Remove the month_picker_dialog import
+// import 'package:month_picker_dialog/month_picker_dialog.dart';
 import '../../constant/colors.dart';
 import 'package:provider/provider.dart';
 import '../../providers/user.dart';
+import '../../widget/monthPicker.dart';
+// Import our custom month picker
+// Make sure to create this file with our MonthPicker
 
 class CloseReport extends StatefulWidget {
   const CloseReport({super.key});
@@ -54,12 +58,12 @@ class _CloseReportState extends State<CloseReport> {
                     ),
                     IconButton(
                       onPressed: () {
-                        showMonthPicker(
+                        // Replace showMonthPicker with our custom showCustomMonthPicker
+                        showCustomMonthPicker(
                           context: context,
+                          initialDate: selectedDate,
                           firstDate: DateTime(DateTime.now().year - 1, 5),
                           lastDate: DateTime(DateTime.now().year + 1, 14),
-                          initialDate: selectedDate,
-                          // locale: Locale("en"),
                         ).then((date) {
                           if (date != null) {
                             setState(() {
@@ -115,49 +119,6 @@ class _CloseReportState extends State<CloseReport> {
   }
 
   List userList = [];
-  // void _showCloseCustomerDialog(BuildContext context, var cust) {
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return AlertDialog(
-  //         title: Text('Reactivating Customer'),
-  //         content: Container(
-  //           height: MediaQuery.of(context).size.height * .2,
-  //           child: Column(
-  //             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-  //             crossAxisAlignment: CrossAxisAlignment.start,
-  //             children: [
-  //               Text('Are you sure you want to reactivating this customer?'),
-  //               SizedBox(height: 10),
-  //               Text("Customer Name: ${cust['name']}"),
-  //               Text("Customer Balance: ${cust['balaceAtClose']}"),
-  //             ],
-  //           ),
-  //         ),
-  //         actions: <Widget>[
-  //           TextButton(
-  //             child: Text('Cancel'),
-  //             onPressed: () {
-  //               Navigator.of(context).pop(); // Close the dialog
-  //             },
-  //           ),
-  //           TextButton(
-  //             child: Text('Reactivate'),
-  //             onPressed: () {
-  //               Provider.of<User>(context, listen: false).ReactivityCloseUser(
-  //                   cust['id'],
-  //                   cust['balaceAtClose'],
-  //                   cust['closeTotal_gram'],
-  //                   DateTime.now());
-  //               // Perform delete action here
-  //               Navigator.of(context).pop(); // Close the dialog after delete
-  //             },
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
 
   void _showCloseCustomerDialog(BuildContext context, var cust) {
     DateTime? selectedDate = DateTime.now(); // Holds the selected date

@@ -27,6 +27,7 @@ class _GoldRateScreenState extends State<GoldRateScreen> {
   final upController = TextEditingController();
   final downController = TextEditingController();
   final gramController = TextEditingController();
+  final eighteenKCntrl = TextEditingController();
   var _isLoading = false;
   var _goldRate = GoldrateModel(
     id: '',
@@ -50,9 +51,12 @@ class _GoldRateScreenState extends State<GoldRateScreen> {
       if (value != null) {
         setState(() {
           goldrateList = value!;
+          gramController.text = goldrateList[0]['gram'].toString();
           pavanController.text = goldrateList[0]['pavan'].toString();
           upController.text = goldrateList[0]['up'].toString();
           downController.text = goldrateList[0]['down'].toString();
+          eighteenKCntrl.text = goldrateList[0]['18gram'].toString();
+
           oldGoldRate = goldrateList[0]['gram'].toDouble();
         });
       }
@@ -243,7 +247,8 @@ class _GoldRateScreenState extends State<GoldRateScreen> {
       _isLoading = true;
     });
     try {
-      Provider.of<Goldrate>(context, listen: false).update(id, _goldRate);
+      Provider.of<Goldrate>(context, listen: false)
+          .update(id, _goldRate, double.parse(eighteenKCntrl.text));
       if (userList.length > 0) {
         for (var i = 0; i < userList.length; i++) {
           if (userList[i]["token"] != "") {
@@ -313,7 +318,6 @@ class _GoldRateScreenState extends State<GoldRateScreen> {
                           key: _formKey,
                           child: Container(
                             width: double.infinity,
-                            height: MediaQuery.of(context).size.height * .6,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(20),
                               color: Colors.white,
@@ -323,213 +327,278 @@ class _GoldRateScreenState extends State<GoldRateScreen> {
                               child: Column(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceEvenly,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
-                                  Container(
-                                    width: double.infinity,
-                                    height: 50,
-                                    child: TextFormField(
-                                      keyboardType: TextInputType.number,
-                                      initialValue:
-                                          goldrateList[0]['gram'].toString(),
-                                      validator: (value) {
-                                        if (value == null || value.isEmpty) {
-                                          return 'Rate in gram';
-                                        }
-                                        return null;
-                                      },
-                                      onChanged: (value) {
-                                        if (value != "") {}
-                                        goldrateCalculate(
-                                            double.tryParse(value));
-                                      },
-                                      onSaved: (value) {
-                                        _goldRate = GoldrateModel(
-                                          gram: value != ""
-                                              ? double.parse(value!)
-                                              : double.parse(0.0.toString()),
-                                          pavan: _goldRate.pavan,
-                                          up: _goldRate.up,
-                                          down: _goldRate.down,
-                                          id: _goldRate.id,
-                                        );
-                                      },
-                                      decoration: const InputDecoration(
-                                        focusedBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                            color: Colors.red,
-                                            width: 1.0,
-                                          ),
-                                        ),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                            color: Colors.black,
-                                            width: 1.0,
-                                          ),
-                                        ),
-                                        labelText: 'Enter rate in gram',
-                                      ),
-                                    ),
+                                  Text(
+                                    "Update Amount 22K",
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
                                   ),
-                                  Container(
-                                    width: double.infinity,
-                                    height: 50,
-                                    child: TextFormField(
-                                      controller: pavanController,
-                                      keyboardType: TextInputType.number,
-                                      validator: (value) {
-                                        if (value == null || value.isEmpty) {
-                                          return 'Rate in 8 gram';
-                                        }
-                                        return null;
-                                      },
-                                      onSaved: (value) {
-                                        _goldRate = GoldrateModel(
-                                          gram: _goldRate.gram,
-                                          pavan: value != ""
-                                              ? double.parse(value!)
-                                              : double.parse(0.0.toString()),
-                                          up: _goldRate.up,
-                                          down: _goldRate.down,
-                                          id: _goldRate.id,
-                                        );
-                                      },
-                                      decoration: const InputDecoration(
-                                        focusedBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                            color: Colors.red,
-                                            width: 1.0,
-                                          ),
-                                        ),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                            color: Colors.black,
-                                            width: 1.0,
-                                          ),
-                                        ),
-                                        labelText: 'Enter rate 8 in gram',
-                                      ),
-                                    ),
-                                  ),
-                                  Column(
-                                    children: <Widget>[
-                                      Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceEvenly,
-                                          children: <Widget>[
-                                            Container(
-                                              width: MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                  .4,
-                                              height: 50,
-                                              child: TextFormField(
-                                                controller: upController,
-                                                keyboardType:
-                                                    TextInputType.number,
-                                                // initialValue: goldrateList[0]
-                                                //             ['up'] !=
-                                                //         null
-                                                //     ? goldrateList[0]['up']
-                                                //         .toString()
-                                                //     : 0.0.toString(),
-                                                onSaved: (value) {
-                                                  _goldRate = GoldrateModel(
-                                                    gram: _goldRate.gram,
-                                                    pavan: _goldRate.pavan,
-                                                    up: value != ""
-                                                        ? double.parse(value!)
-                                                        : double.parse(
-                                                            0.0.toString()),
-                                                    down: _goldRate.down,
-                                                    id: _goldRate.id,
-                                                  );
-                                                },
-                                                decoration:
-                                                    const InputDecoration(
-                                                  focusedBorder:
-                                                      OutlineInputBorder(
-                                                    borderSide: BorderSide(
-                                                      color: Colors.red,
-                                                      width: 1.0,
-                                                    ),
-                                                  ),
-                                                  enabledBorder:
-                                                      OutlineInputBorder(
-                                                    borderSide: BorderSide(
-                                                      color: Colors.black,
-                                                      width: 1.0,
-                                                    ),
-                                                  ),
-                                                  labelText: 'Up',
-                                                ),
-                                              ),
+                                  SizedBox(height: 10),
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Container(
+                                      width: double.infinity,
+                                      height: 50,
+                                      child: TextFormField(
+                                        keyboardType: TextInputType.number,
+                                        initialValue:
+                                            goldrateList[0]['gram'].toString(),
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return 'Rate in gram';
+                                          }
+                                          return null;
+                                        },
+                                        onChanged: (value) {
+                                          if (value != "") {}
+                                          goldrateCalculate(
+                                              double.tryParse(value));
+                                        },
+                                        onSaved: (value) {
+                                          _goldRate = GoldrateModel(
+                                            gram: value != ""
+                                                ? double.parse(value!)
+                                                : double.parse(0.0.toString()),
+                                            pavan: _goldRate.pavan,
+                                            up: _goldRate.up,
+                                            down: _goldRate.down,
+                                            id: _goldRate.id,
+                                          );
+                                        },
+                                        decoration: const InputDecoration(
+                                          focusedBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                              color: Colors.red,
+                                              width: 1.0,
                                             ),
-                                            Container(
-                                              width: MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                  .4,
-                                              height: 50,
-                                              child: TextFormField(
-                                                controller: downController,
-                                                keyboardType:
-                                                    TextInputType.number,
-                                                // initialValue: goldrateList[0]
-                                                //             ['down'] !=
-                                                //         null
-                                                //     ? goldrateList[0]['down']
-                                                //         .toString()
-                                                //     : 0.0.toString(),
-                                                onSaved: (value) {
-                                                  _goldRate = GoldrateModel(
-                                                    gram: _goldRate.gram,
-                                                    pavan: _goldRate.pavan,
-                                                    up: _goldRate.up,
-                                                    down: value != ""
-                                                        ? double.parse(value!)
-                                                        : double.parse(
-                                                            0.0.toString()),
-                                                    id: _goldRate.id,
-                                                  );
-                                                },
-                                                decoration:
-                                                    const InputDecoration(
-                                                  focusedBorder:
-                                                      OutlineInputBorder(
-                                                    borderSide: BorderSide(
-                                                      color: Colors.red,
-                                                      width: 1.0,
+                                          ),
+                                          enabledBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                              color: Colors.black,
+                                              width: 1.0,
+                                            ),
+                                          ),
+                                          labelText: 'Enter rate in gram',
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Container(
+                                      width: double.infinity,
+                                      height: 50,
+                                      child: TextFormField(
+                                        controller: pavanController,
+                                        keyboardType: TextInputType.number,
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return 'Rate in 8 gram';
+                                          }
+                                          return null;
+                                        },
+                                        onSaved: (value) {
+                                          _goldRate = GoldrateModel(
+                                            gram: _goldRate.gram,
+                                            pavan: value != ""
+                                                ? double.parse(value!)
+                                                : double.parse(0.0.toString()),
+                                            up: _goldRate.up,
+                                            down: _goldRate.down,
+                                            id: _goldRate.id,
+                                          );
+                                        },
+                                        decoration: const InputDecoration(
+                                          focusedBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                              color: Colors.red,
+                                              width: 1.0,
+                                            ),
+                                          ),
+                                          enabledBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                              color: Colors.black,
+                                              width: 1.0,
+                                            ),
+                                          ),
+                                          labelText: 'Enter rate 8 in gram',
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Column(
+                                      children: <Widget>[
+                                        Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: <Widget>[
+                                              Container(
+                                                width: MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    .4,
+                                                height: 50,
+                                                child: TextFormField(
+                                                  controller: upController,
+                                                  keyboardType:
+                                                      TextInputType.number,
+                                                  // initialValue: goldrateList[0]
+                                                  //             ['up'] !=
+                                                  //         null
+                                                  //     ? goldrateList[0]['up']
+                                                  //         .toString()
+                                                  //     : 0.0.toString(),
+                                                  onSaved: (value) {
+                                                    _goldRate = GoldrateModel(
+                                                      gram: _goldRate.gram,
+                                                      pavan: _goldRate.pavan,
+                                                      up: value != ""
+                                                          ? double.parse(value!)
+                                                          : double.parse(
+                                                              0.0.toString()),
+                                                      down: _goldRate.down,
+                                                      id: _goldRate.id,
+                                                    );
+                                                  },
+                                                  decoration:
+                                                      const InputDecoration(
+                                                    focusedBorder:
+                                                        OutlineInputBorder(
+                                                      borderSide: BorderSide(
+                                                        color: Colors.red,
+                                                        width: 1.0,
+                                                      ),
                                                     ),
-                                                  ),
-                                                  enabledBorder:
-                                                      OutlineInputBorder(
-                                                    borderSide: BorderSide(
-                                                      color: Colors.black,
-                                                      width: 1.0,
+                                                    enabledBorder:
+                                                        OutlineInputBorder(
+                                                      borderSide: BorderSide(
+                                                        color: Colors.black,
+                                                        width: 1.0,
+                                                      ),
                                                     ),
+                                                    labelText: 'Up',
                                                   ),
-                                                  labelText: 'Down',
                                                 ),
                                               ),
-                                            )
-                                          ])
-                                    ],
+                                              SizedBox(width: 10),
+                                              Container(
+                                                width: MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    .3,
+                                                height: 50,
+                                                child: TextFormField(
+                                                  controller: downController,
+                                                  keyboardType:
+                                                      TextInputType.number,
+                                                  // initialValue: goldrateList[0]
+                                                  //             ['down'] !=
+                                                  //         null
+                                                  //     ? goldrateList[0]['down']
+                                                  //         .toString()
+                                                  //     : 0.0.toString(),
+                                                  onSaved: (value) {
+                                                    _goldRate = GoldrateModel(
+                                                      gram: _goldRate.gram,
+                                                      pavan: _goldRate.pavan,
+                                                      up: _goldRate.up,
+                                                      down: value != ""
+                                                          ? double.parse(value!)
+                                                          : double.parse(
+                                                              0.0.toString()),
+                                                      id: _goldRate.id,
+                                                    );
+                                                  },
+                                                  decoration:
+                                                      const InputDecoration(
+                                                    focusedBorder:
+                                                        OutlineInputBorder(
+                                                      borderSide: BorderSide(
+                                                        color: Colors.red,
+                                                        width: 1.0,
+                                                      ),
+                                                    ),
+                                                    enabledBorder:
+                                                        OutlineInputBorder(
+                                                      borderSide: BorderSide(
+                                                        color: Colors.black,
+                                                        width: 1.0,
+                                                      ),
+                                                    ),
+                                                    labelText: 'Down',
+                                                  ),
+                                                ),
+                                              )
+                                            ])
+                                      ],
+                                    ),
                                   ),
-                                  Container(
-                                    width:
-                                        MediaQuery.of(context).size.width * .4,
-                                    height: MediaQuery.of(context).size.height *
-                                        .06,
-                                    decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(15),
-                                        color: useColor.homeIconColor),
-                                    child: TextButton(
-                                      onPressed: () {
-                                        _saveForm(goldrateList[0]['id']);
-                                      },
-                                      child: const Text(
-                                        'Update',
-                                        style: TextStyle(color: Colors.white),
+                                  SizedBox(height: 10),
+                                  Text(
+                                    "Update Amount 18K",
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  SizedBox(height: 10),
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Container(
+                                      width: double.infinity,
+                                      height: 50,
+                                      child: TextFormField(
+                                        controller: eighteenKCntrl,
+                                        keyboardType: TextInputType.number,
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return 'Rate of 18K gram';
+                                          }
+                                          return null;
+                                        },
+                                        decoration: const InputDecoration(
+                                          focusedBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                              color: Colors.red,
+                                              width: 1.0,
+                                            ),
+                                          ),
+                                          enabledBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                              color: Colors.black,
+                                              width: 1.0,
+                                            ),
+                                          ),
+                                          labelText: 'Enter rate in gram',
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Center(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Container(
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                .4,
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                .06,
+                                        decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(15),
+                                            color: useColor.homeIconColor),
+                                        child: TextButton(
+                                          onPressed: () {
+                                            _saveForm(goldrateList[0]['id']);
+                                          },
+                                          child: const Text(
+                                            'Update',
+                                            style:
+                                                TextStyle(color: Colors.white),
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   )
@@ -543,9 +612,6 @@ class _GoldRateScreenState extends State<GoldRateScreen> {
                   )
                 : Column(
                     children: [
-                      Center(
-                        child: Text("Add Gold Rate "),
-                      ),
                       SingleChildScrollView(
                         child: Column(
                           children: [
@@ -553,7 +619,6 @@ class _GoldRateScreenState extends State<GoldRateScreen> {
                               key: _formKey,
                               child: Container(
                                 width: double.infinity,
-                                height: MediaQuery.of(context).size.height * .6,
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(20),
                                   color: Colors.white,
@@ -561,203 +626,273 @@ class _GoldRateScreenState extends State<GoldRateScreen> {
                                 child: Padding(
                                   padding: const EdgeInsets.all(15.0),
                                   child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceEvenly,
                                     children: <Widget>[
-                                      Container(
-                                        width: double.infinity,
-                                        height: 50,
-                                        child: TextFormField(
-                                          keyboardType: TextInputType.number,
-                                          controller: gramController,
-                                          validator: (value) {
-                                            if (value == null ||
-                                                value.isEmpty) {
-                                              return 'Rate in gram';
-                                            }
-                                            return null;
-                                          },
-                                          onChanged: (value) {
-                                            if (value != "") {}
-                                            goldrateCalculate(
-                                                double.tryParse(value));
-                                          },
-                                          decoration: const InputDecoration(
-                                            focusedBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                color: Colors.red,
-                                                width: 1.0,
-                                              ),
-                                            ),
-                                            enabledBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                color: Colors.black,
-                                                width: 1.0,
-                                              ),
-                                            ),
-                                            labelText: 'Enter rate in gram',
-                                          ),
-                                        ),
+                                      Text(
+                                        "Add Amount 22K",
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold),
                                       ),
-                                      Container(
-                                        width: double.infinity,
-                                        height: 50,
-                                        child: TextFormField(
-                                          controller: pavanController,
-                                          keyboardType: TextInputType.number,
-                                          validator: (value) {
-                                            if (value == null ||
-                                                value.isEmpty) {
-                                              return 'Rate in 8 gram';
-                                            }
-                                            return null;
-                                          },
-                                          decoration: const InputDecoration(
-                                            focusedBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                color: Colors.red,
-                                                width: 1.0,
-                                              ),
-                                            ),
-                                            enabledBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                color: Colors.black,
-                                                width: 1.0,
-                                              ),
-                                            ),
-                                            labelText: 'Enter rate 8 in gram',
-                                          ),
-                                        ),
-                                      ),
-                                      Column(
-                                        children: <Widget>[
-                                          Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.spaceEvenly,
-                                              children: <Widget>[
-                                                Container(
-                                                  width: MediaQuery.of(context)
-                                                          .size
-                                                          .width *
-                                                      .4,
-                                                  height: 50,
-                                                  child: TextFormField(
-                                                    controller: upController,
-                                                    keyboardType:
-                                                        TextInputType.number,
-                                                    // initialValue: goldrateList[0]
-                                                    //             ['up'] !=
-                                                    //         null
-                                                    //     ? goldrateList[0]['up']
-                                                    //         .toString()
-                                                    //     : 0.0.toString(),
-
-                                                    decoration:
-                                                        const InputDecoration(
-                                                      focusedBorder:
-                                                          OutlineInputBorder(
-                                                        borderSide: BorderSide(
-                                                          color: Colors.red,
-                                                          width: 1.0,
-                                                        ),
-                                                      ),
-                                                      enabledBorder:
-                                                          OutlineInputBorder(
-                                                        borderSide: BorderSide(
-                                                          color: Colors.black,
-                                                          width: 1.0,
-                                                        ),
-                                                      ),
-                                                      labelText: 'Up',
-                                                    ),
-                                                  ),
+                                      SizedBox(height: 10),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Container(
+                                          width: double.infinity,
+                                          height: 50,
+                                          child: TextFormField(
+                                            keyboardType: TextInputType.number,
+                                            controller: gramController,
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return 'Rate in gram';
+                                              }
+                                              return null;
+                                            },
+                                            onChanged: (value) {
+                                              if (value != "") {}
+                                              goldrateCalculate(
+                                                  double.tryParse(value));
+                                            },
+                                            decoration: const InputDecoration(
+                                              focusedBorder: OutlineInputBorder(
+                                                borderSide: BorderSide(
+                                                  color: Colors.red,
+                                                  width: 1.0,
                                                 ),
-                                                Container(
-                                                  width: MediaQuery.of(context)
-                                                          .size
-                                                          .width *
-                                                      .4,
-                                                  height: 50,
-                                                  child: TextFormField(
-                                                    controller: downController,
-                                                    keyboardType:
-                                                        TextInputType.number,
-                                                    // initialValue: goldrateList[0]
-                                                    //             ['down'] !=
-                                                    //         null
-                                                    //     ? goldrateList[0]['down']
-                                                    //         .toString()
-                                                    //     : 0.0.toString(),
+                                              ),
+                                              enabledBorder: OutlineInputBorder(
+                                                borderSide: BorderSide(
+                                                  color: Colors.black,
+                                                  width: 1.0,
+                                                ),
+                                              ),
+                                              labelText: 'Enter rate in gram',
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Container(
+                                          width: double.infinity,
+                                          height: 50,
+                                          child: TextFormField(
+                                            controller: pavanController,
+                                            keyboardType: TextInputType.number,
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return 'Rate in 8 gram';
+                                              }
+                                              return null;
+                                            },
+                                            decoration: const InputDecoration(
+                                              focusedBorder: OutlineInputBorder(
+                                                borderSide: BorderSide(
+                                                  color: Colors.red,
+                                                  width: 1.0,
+                                                ),
+                                              ),
+                                              enabledBorder: OutlineInputBorder(
+                                                borderSide: BorderSide(
+                                                  color: Colors.black,
+                                                  width: 1.0,
+                                                ),
+                                              ),
+                                              labelText: 'Enter rate 8 in gram',
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Column(
+                                          children: <Widget>[
+                                            Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceEvenly,
+                                                children: <Widget>[
+                                                  Container(
+                                                    width:
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .width *
+                                                            .4,
+                                                    height: 50,
+                                                    child: TextFormField(
+                                                      controller: upController,
+                                                      keyboardType:
+                                                          TextInputType.number,
+                                                      // initialValue: goldrateList[0]
+                                                      //             ['up'] !=
+                                                      //         null
+                                                      //     ? goldrateList[0]['up']
+                                                      //         .toString()
+                                                      //     : 0.0.toString(),
 
-                                                    decoration:
-                                                        const InputDecoration(
-                                                      focusedBorder:
-                                                          OutlineInputBorder(
-                                                        borderSide: BorderSide(
-                                                          color: Colors.red,
-                                                          width: 1.0,
+                                                      decoration:
+                                                          const InputDecoration(
+                                                        focusedBorder:
+                                                            OutlineInputBorder(
+                                                          borderSide:
+                                                              BorderSide(
+                                                            color: Colors.red,
+                                                            width: 1.0,
+                                                          ),
                                                         ),
-                                                      ),
-                                                      enabledBorder:
-                                                          OutlineInputBorder(
-                                                        borderSide: BorderSide(
-                                                          color: Colors.black,
-                                                          width: 1.0,
+                                                        enabledBorder:
+                                                            OutlineInputBorder(
+                                                          borderSide:
+                                                              BorderSide(
+                                                            color: Colors.black,
+                                                            width: 1.0,
+                                                          ),
                                                         ),
+                                                        labelText: 'Up',
                                                       ),
-                                                      labelText: 'Down',
                                                     ),
                                                   ),
-                                                )
-                                              ])
-                                        ],
+                                                  SizedBox(width: 10),
+                                                  Container(
+                                                    width:
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .width *
+                                                            .3,
+                                                    height: 50,
+                                                    child: TextFormField(
+                                                      controller:
+                                                          downController,
+                                                      keyboardType:
+                                                          TextInputType.number,
+                                                      // initialValue: goldrateList[0]
+                                                      //             ['down'] !=
+                                                      //         null
+                                                      //     ? goldrateList[0]['down']
+                                                      //         .toString()
+                                                      //     : 0.0.toString(),
+
+                                                      decoration:
+                                                          const InputDecoration(
+                                                        focusedBorder:
+                                                            OutlineInputBorder(
+                                                          borderSide:
+                                                              BorderSide(
+                                                            color: Colors.red,
+                                                            width: 1.0,
+                                                          ),
+                                                        ),
+                                                        enabledBorder:
+                                                            OutlineInputBorder(
+                                                          borderSide:
+                                                              BorderSide(
+                                                            color: Colors.black,
+                                                            width: 1.0,
+                                                          ),
+                                                        ),
+                                                        labelText: 'Down',
+                                                      ),
+                                                    ),
+                                                  )
+                                                ])
+                                          ],
+                                        ),
                                       ),
-                                      Container(
-                                        width:
-                                            MediaQuery.of(context).size.width *
+                                      SizedBox(height: 10),
+                                      Text(
+                                        "Add Amount 18K",
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      SizedBox(height: 10),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Container(
+                                          width: double.infinity,
+                                          height: 50,
+                                          child: TextFormField(
+                                            keyboardType: TextInputType.number,
+                                            controller: eighteenKCntrl,
+                                            decoration: const InputDecoration(
+                                              focusedBorder: OutlineInputBorder(
+                                                borderSide: BorderSide(
+                                                  color: Colors.red,
+                                                  width: 1.0,
+                                                ),
+                                              ),
+                                              enabledBorder: OutlineInputBorder(
+                                                borderSide: BorderSide(
+                                                  color: Colors.black,
+                                                  width: 1.0,
+                                                ),
+                                              ),
+                                              labelText: 'Enter rate in gram',
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Center(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Container(
+                                            width: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
                                                 .4,
-                                        height:
-                                            MediaQuery.of(context).size.height *
+                                            height: MediaQuery.of(context)
+                                                    .size
+                                                    .height *
                                                 .06,
-                                        decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(15),
-                                            color: useColor.homeIconColor),
-                                        child: TextButton(
-                                          onPressed: () {
-                                            final isValid = _formKey
-                                                .currentState!
-                                                .validate();
-                                            if (!isValid) {
-                                              return;
-                                            }
-                                            print(pavanController.text);
-                                            _goldRate = GoldrateModel(
-                                              gram: double.parse(
-                                                  gramController.text),
-                                              pavan: double.parse(
-                                                  pavanController.text),
-                                              up: double.parse(
-                                                  upController.text),
-                                              down: double.parse(
-                                                  downController.text),
-                                              id: "",
-                                            );
-                                            Provider.of<Goldrate>(context,
-                                                    listen: false)
-                                                .create(_goldRate)
-                                                .then((onValue) {
-                                              initialise();
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(const SnackBar(
-                                                      content: Text(
-                                                          'Successfully add goldrate')));
-                                            });
-                                          },
-                                          child: const Text(
-                                            'Add Goldrate',
-                                            style:
-                                                TextStyle(color: Colors.white),
+                                            decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(15),
+                                                color: useColor.homeIconColor),
+                                            child: TextButton(
+                                              onPressed: () {
+                                                final isValid = _formKey
+                                                    .currentState!
+                                                    .validate();
+                                                if (!isValid) {
+                                                  return;
+                                                }
+
+                                                _goldRate = GoldrateModel(
+                                                  gram: double.parse(
+                                                      gramController.text),
+                                                  pavan: double.parse(
+                                                      pavanController.text),
+                                                  up: double.parse(
+                                                      upController.text),
+                                                  down: double.parse(
+                                                      downController.text),
+                                                  id: "",
+                                                );
+                                                Provider.of<Goldrate>(context,
+                                                        listen: false)
+                                                    .create(
+                                                        _goldRate,
+                                                        double.parse(
+                                                            eighteenKCntrl
+                                                                .text))
+                                                    .then((onValue) {
+                                                  initialise();
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(const SnackBar(
+                                                          content: Text(
+                                                              'Successfully add goldrate')));
+                                                });
+                                              },
+                                              child: const Text(
+                                                'Add Goldrate',
+                                                style: TextStyle(
+                                                    color: Colors.white),
+                                              ),
+                                            ),
                                           ),
                                         ),
                                       )

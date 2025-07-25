@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:provider/provider.dart';
 import '../../constant/colors.dart';
 import '../screens/category/categoryList..dart';
 import './auth/login_screen.dart';
@@ -50,11 +51,11 @@ class _HomeScreenState extends State<HomeScreen> {
   double recieptPending = 0;
   Goldrate? dbgold;
   TransactionProvider? db;
+  double totalAmt = 0;
+  double totalWeight = 0;
   initialise() {
     dbgold = Goldrate();
-
     dbgold!.initiliase();
-
     dbgold!.checkPermission().then((value) => {
           if (value == false)
             {
@@ -140,7 +141,19 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    getBalance();
     loginData();
+  }
+
+  getBalance() {
+    Provider.of<TransactionProvider>(context, listen: false)
+        .getTotalBalance()
+        .then((val) {
+      setState(() {
+        totalAmt = val[0];
+        totalWeight = val[1];
+      });
+    });
   }
 
   redirectLoginPage() {
@@ -289,138 +302,90 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            // Card(
-                            //     shape: RoundedRectangleBorder(
-                            //       borderRadius: BorderRadius.circular(15.0),
-                            //     ),
-                            //     child: Container(
-                            //       padding: EdgeInsets.all(5),
-                            //       child: Column(
-                            //         mainAxisAlignment:
-                            //             MainAxisAlignment.spaceAround,
-                            //         children: [
-                            //           Row(
-                            //             mainAxisAlignment:
-                            //                 MainAxisAlignment.spaceAround,
-                            //             children: [
-                            //               Container(
-                            //                 child: Text(
-                            //                   "Total Collection",
-                            //                   style: TextStyle(
-                            //                     fontSize: 11,
-                            //                     fontWeight: FontWeight.w500,
-                            //                     color: Colors.grey.shade600,
-                            //                   ),
-                            //                 ),
-                            //               ),
-                            //               Container(
-                            //                 child: Text(
-                            //                   "Balance",
-                            //                   style: TextStyle(
-                            //                     fontSize: 11,
-                            //                     fontWeight: FontWeight.w500,
-                            //                     color: Colors.grey.shade600,
-                            //                   ),
-                            //                 ),
-                            //               ),
-                            //             ],
-                            //           ),
-                            //           Row(
-                            //             mainAxisAlignment:
-                            //                 MainAxisAlignment.spaceAround,
-                            //             children: [
-                            //               Container(
-                            //                 child: Flexible(
-                            //                   child: Text(
-                            //                     overflow: TextOverflow.ellipsis,
-                            //                     "₹ ${recieptAmount.toString()} / gm ${reciptgram.toStringAsFixed(4)}",
-                            //                     style: TextStyle(
-                            //                       fontSize: 12,
-                            //                       fontWeight: FontWeight.w500,
-                            //                       color: Colors.grey.shade700,
-                            //                     ),
-                            //                   ),
-                            //                 ),
-                            //               ),
-                            //               Container(
-                            //                 child: Flexible(
-                            //                   child: Text(
-                            //                     overflow: TextOverflow.ellipsis,
-                            //                     "₹ ${amountBalance.toString()}  / gm ${gramBalance.toStringAsFixed(4)}",
-                            //                     style: TextStyle(
-                            //                       fontSize: 12,
-                            //                       fontWeight: FontWeight.w500,
-                            //                       color: Colors.grey.shade700,
-                            //                     ),
-                            //                   ),
-                            //                 ),
-                            //               ),
-                            //             ],
-                            //           ),
-                            //           // ==============
-                            //           Row(
-                            //             mainAxisAlignment:
-                            //                 MainAxisAlignment.spaceAround,
-                            //             children: [
-                            //               Container(
-                            //                 child: Text(
-                            //                   "Total Purchase",
-                            //                   style: TextStyle(
-                            //                     fontSize: 11,
-                            //                     fontWeight: FontWeight.w500,
-                            //                     color: Colors.grey.shade600,
-                            //                   ),
-                            //                 ),
-                            //               ),
-                            //               Container(
-                            //                 child: Text(
-                            //                   "Staff Reciept Pending",
-                            //                   style: TextStyle(
-                            //                     fontSize: 11,
-                            //                     fontWeight: FontWeight.w500,
-                            //                     color: Colors.grey.shade600,
-                            //                   ),
-                            //                 ),
-                            //               ),
-                            //             ],
-                            //           ),
-                            //           Row(
-                            //             mainAxisAlignment:
-                            //                 MainAxisAlignment.spaceAround,
-                            //             children: [
-                            //               Container(
-                            //                 child: Flexible(
-                            //                   child: Text(
-                            //                     overflow: TextOverflow.ellipsis,
-                            //                     "₹ ${purchaseAmt.toString()} / gm ${purchasegram.toStringAsFixed(4)}",
-                            //                     style: TextStyle(
-                            //                       fontSize: 12,
-                            //                       fontWeight: FontWeight.w500,
-                            //                       color: Colors.grey.shade700,
-                            //                     ),
-                            //                   ),
-                            //                 ),
-                            //               ),
-                            //               Container(
-                            //                 child: Flexible(
-                            //                   child: Text(
-                            //                     overflow: TextOverflow.ellipsis,
-                            //                     "₹ ${recieptPending.toString()}",
-                            //                     style: TextStyle(
-                            //                       fontSize: 12,
-                            //                       fontWeight: FontWeight.w500,
-                            //                       color: Colors.grey.shade700,
-                            //                     ),
-                            //                   ),
-                            //                 ),
-                            //               ),
-                            //             ],
-                            //           ),
-                            //         ],
-                            //       ),
-                            //       height: 110,
-                            //       width: double.infinity,
-                            //     )),
+                            Card(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15.0),
+                                ),
+                                child: Container(
+                                  padding: EdgeInsets.all(10),
+                                  child: Column(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceAround,
+                                    children: [
+                                      Container(
+                                        child: Text(
+                                          "Total Recieved Balance Details",
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.grey.shade500,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(height: 15),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceAround,
+                                        children: [
+                                          Container(
+                                            child: Text(
+                                              "Total Amount",
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w500,
+                                                color: Colors.grey.shade600,
+                                              ),
+                                            ),
+                                          ),
+                                          Container(
+                                            child: Text(
+                                              "Total Weight",
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w500,
+                                                color: Colors.grey.shade600,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(height: 10),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceAround,
+                                        children: [
+                                          Container(
+                                            child: Flexible(
+                                              child: Text(
+                                                overflow: TextOverflow.ellipsis,
+                                                "₹ ${totalAmt.toStringAsFixed(2)}",
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Colors.grey.shade700,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          Container(
+                                            child: Flexible(
+                                              child: Text(
+                                                overflow: TextOverflow.ellipsis,
+                                                "${totalWeight.toStringAsFixed(3)} gm",
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Colors.grey.shade700,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  width: double.infinity,
+                                )),
                             Card(
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(15.0),
@@ -497,7 +462,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                   height: 100,
                                   width: double.infinity,
                                 )),
-
                             GestureDetector(
                               onTap: () {
                                 Navigator.push(
@@ -932,7 +896,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             height: MediaQuery.of(context).size.height * .25,
                             child: Image(
                               image: AssetImage(
-                                "assets/images/icon1.png",
+                                "assets/images/logo.png",
                               ),
                               fit: BoxFit.contain,
                             ),
@@ -1024,7 +988,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 icon: FaIcon(
                                                   FontAwesomeIcons.user,
                                                   size: 32,
-                                                  color: Color(0xff8a172e),
+                                                  color: useColor.homeIconColor,
                                                 ),
                                                 onPressed: () {
                                                   Navigator.push(
@@ -1066,7 +1030,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   icon: FaIcon(
                                                     FontAwesomeIcons.noteSticky,
                                                     size: 32,
-                                                    color: Color(0xff8a172e),
+                                                    color:
+                                                        useColor.homeIconColor,
                                                   ),
                                                   onPressed: () {
                                                     Navigator.push(

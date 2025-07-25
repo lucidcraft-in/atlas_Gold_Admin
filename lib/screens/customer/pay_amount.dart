@@ -52,7 +52,7 @@ class _PayAmountScreenState extends State<PayAmountScreen> {
   var _isInit = true;
   String selectedValue = 'Gold';
   int? branchId;
-
+  TextEditingController weightCntrl = TextEditingController();
   List goldrateList = [];
   TextEditingController grampPerdayController = TextEditingController()
     ..text = '0.0';
@@ -93,14 +93,12 @@ class _PayAmountScreenState extends State<PayAmountScreen> {
     db!.getAdminStaffToken(branchId!).then((value) => {
           setState(() {
             staffList = value!;
-
             // isLoading = false;
           })
         });
     dbGoldrate!.read().then((value) => {
           setState(() {
             goldrateList = value!;
-
             grampPerdayController.text = goldrateList[0]['gram'].toString();
           }),
         });
@@ -147,7 +145,8 @@ class _PayAmountScreenState extends State<PayAmountScreen> {
       type: _collection.type,
       branch: branchId!,
     );
-
+    print("-----");
+    print(widget.user);
     initialise();
   }
 
@@ -268,6 +267,18 @@ class _PayAmountScreenState extends State<PayAmountScreen> {
     requestPermission();
   }
 
+  // int transactionCount = 0;
+  // getCount(String custId) {
+  //   print(custId);
+  //   Provider.of<TransactionProvider>(context, listen: false)
+  //       .getTransactionCount(custId)
+  //       .then((value) {
+  //     setState(() {
+  //       transactionCount = value;
+  //     });
+  //   });
+  // }
+
   sendNotification(String title, String token, double amt) async {
     final data = {
       'click_action': 'FLUTTER_NOTIFICATION_CLICK',
@@ -343,92 +354,6 @@ class _PayAmountScreenState extends State<PayAmountScreen> {
     } catch (e) {}
   }
 
-  // Future _saveForm() async {
-  //   if (isLoad) return; // Prevent multiple calls
-
-  //   final isValid = _formKey.currentState!.validate();
-  //   if (!isValid) {
-  //     setState(() {
-  //       isLoad = false;
-  //     });
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text('Please fill all required fields correctly!'),
-  //         backgroundColor: useColor.homeIconColor, // Red color for error
-  //       ),
-  //     );
-  //     return;
-  //   }
-  //   _formKey.currentState!.save();
-
-  //   setState(() {
-  //     _isLoading = true;
-  //   });
-  //   try {
-  //     _collection = CollectionModel(
-  //       staffId: _collection.staffId,
-  //       staffname: _collection.staffname,
-  //       recievedAmount: _transaction.amount,
-  //       paidAmount: _collection.paidAmount,
-  //       balance: _collection.balance,
-  //       date: selectedDate == null
-  //           ? DateTime(now.year, now.month, now.day)
-  //           : selectedDate!,
-  //       type: 0,
-  //       branch: branchId!,
-  //       // type 0 is recive amount
-  //     );
-  //     Provider.of<TransactionProvider>(context, listen: false)
-  //         .create(
-  //       _transaction,
-  //     )
-  //         .then((val) {
-  //       var data;
-  //       setState(() {
-  //         data = val;
-  //       });
-  //       print(data);
-  //       Provider.of<Collection>(context, listen: false)
-  //           .create(_collection, data[3])
-  //           .then(((value) {}));
-  //       // printReceipt("Recieve", widget.custName!, _transaction.amount, value);
-  //       setState(() {});
-  //       print(widget.token);
-  //       if (widget.token != null) {
-  //         sendNotification(
-  //             "Transaction Completed", widget.token!, _transaction.amount);
-  //       }
-
-  //       final snackBar = SnackBar(content: const Text("add Successfully...."));
-
-  //       ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  //       Navigator.pop(context, true);
-  //     });
-  //   } catch (err) {
-  //     setState(() {
-  //       isLoad = false;
-  //     });
-  //     await showDialog(
-  //       context: context,
-  //       builder: (ctx) => AlertDialog(
-  //         title: Text('An error occurred!'),
-  //         content: Text('Something went wrong. ${err}'),
-  //         actions: <Widget>[
-  //           OutlinedButton(
-  //             child: Text('Okay'),
-  //             onPressed: () {
-  //               Navigator.of(ctx).pop();
-  //             },
-  //           )
-  //         ],
-  //       ),
-  //     );
-  //   }
-  //   setState(() {
-  //     _isLoading = false;
-  //   });
-  // }
-
   Future<void> _saveForm() async {
     if (isLoad) return; // Prevent multiple taps
     setState(() => isLoad = true); // Set before validation
@@ -444,6 +369,36 @@ class _PayAmountScreenState extends State<PayAmountScreen> {
         ),
       );
       return;
+    }
+
+    if (widget.user!["limit"] == "baseLimit") {
+      if (double.parse(amtCntrl.text) < 1000 ||
+          double.parse(amtCntrl.text) > 5000) {
+        setState(() => isLoad = false);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('Amount should be between ₹500 and ₹5000 for base limit!'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+    } else {
+      if (double.parse(amtCntrl.text) < 5000 ||
+          double.parse(amtCntrl.text) > 25000) {
+        setState(() => isLoad = false);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Amount should be between ₹5000 and ₹25000 for higher limit!'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
     }
 
     _formKey.currentState!.save();
@@ -464,7 +419,7 @@ class _PayAmountScreenState extends State<PayAmountScreen> {
       // print(selectedDate);
       // Await the transaction creation
       var data = await Provider.of<TransactionProvider>(context, listen: false)
-          .create(_transaction);
+          .create(_transaction, widget.user!["schemeType"], 0, "");
 
       // print(data);
 
@@ -502,6 +457,7 @@ class _PayAmountScreenState extends State<PayAmountScreen> {
     }
   }
 
+  TextEditingController amtCntrl = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
@@ -525,18 +481,31 @@ class _PayAmountScreenState extends State<PayAmountScreen> {
                     SizedBox(
                       height: 10,
                     ),
+                    Text("Customer Name : ${widget.custName}"),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Text(
+                        "Amount Limit : Rs. ${widget.user!["limit"] == "baseLimit" ? "1000 - 5000" : "5000 - 25000"}"),
+                    SizedBox(
+                      height: 10,
+                    ),
                     Text(
                         "Recieve Staff : ${staffDetails != null ? staffDetails['staffName'] : ""}"),
                     SizedBox(
                       height: 10,
                     ),
                     TextFormField(
+                      controller: amtCntrl,
                       keyboardType: TextInputType.number,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Amount';
                         }
                         return null;
+                      },
+                      onChanged: (value) {
+                        _updateWeight();
                       },
                       onSaved: (value) {
                         _transaction = TransactionModel(
@@ -574,6 +543,31 @@ class _PayAmountScreenState extends State<PayAmountScreen> {
                           ),
                         ),
                         labelText: 'Enter amount given',
+                      ),
+                    ),
+                    SizedBox(
+                      height: 30,
+                    ),
+                    TextFormField(
+                      controller: weightCntrl,
+                      keyboardType: TextInputType.number,
+                      onChanged: (val) {
+                        _updateAmount();
+                      },
+                      decoration: const InputDecoration(
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.red,
+                            width: 1.0,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.black,
+                            width: 1.0,
+                          ),
+                        ),
+                        labelText: 'Weight for Given Amount',
                       ),
                     ),
                     SizedBox(
@@ -636,6 +630,10 @@ class _PayAmountScreenState extends State<PayAmountScreen> {
                         }
                         return null;
                       },
+                      onChanged: (val) {
+                        print("----");
+                        _updateAmountAndWeight();
+                      },
                       onSaved: (value) {
                         _transaction = TransactionModel(
                           customerName: _transaction.customerName,
@@ -672,7 +670,7 @@ class _PayAmountScreenState extends State<PayAmountScreen> {
                             width: 1.0,
                           ),
                         ),
-                        labelText: 'Enter gram rate',
+                        labelText: 'Enter invest gram rate',
                       ),
                     ),
                     SizedBox(
@@ -737,6 +735,77 @@ class _PayAmountScreenState extends State<PayAmountScreen> {
         // ),
         );
   }
+
+  void _updateWeight() {
+    double amount = double.tryParse(amtCntrl.text) ?? 0.0;
+    double gramRate = double.tryParse(grampPerdayController.text) ?? 1.0;
+
+    // if (widget.user!["schemeType"] == "1 Year") {
+    //   // Apply 3% bonus for 1-Year scheme
+    //   gramRate += (3 * gramRate) / 100;
+    // }
+
+    if (gramRate > 0) {
+      double weight = amount / gramRate;
+      weightCntrl.text = weight.toStringAsFixed(3);
+    }
+  }
+
+  void _updateAmount() {
+    double weight = double.tryParse(weightCntrl.text) ?? 0.0;
+    double gramRate = double.tryParse(grampPerdayController.text) ?? 1.0;
+
+    // if (widget.user!["schemeType"] == "1 Year") {
+    //   // Apply 3% bonus for 1-Year scheme
+    //   gramRate += (3 * gramRate) / 100;
+    // }
+
+    if (gramRate > 0) {
+      double amount = weight * gramRate;
+      amtCntrl.text = amount.toStringAsFixed(2);
+    }
+  }
+
+  void _updateAmountAndWeight() {
+    double gramRate = 0.0;
+    double amount = 0.0;
+    double weight = 0.0;
+
+    setState(() {
+      gramRate = double.tryParse(grampPerdayController.text) ?? 0.0;
+      amount = double.tryParse(amtCntrl.text) ?? 0.0;
+      weight = double.tryParse(weightCntrl.text) ?? 0.0;
+    });
+
+    if (updatingFields || gramRate <= 0) return;
+
+    setState(() {
+      updatingFields = true;
+    });
+
+    // // **Check if user is in "1-Year" scheme**
+    // if (widget.user!["schemeType"] == "1 Year") {
+    //   // Apply 3% increase to the gram rate
+    //   double threePerc = 3 * gramRate / 100;
+    //   gramRate += threePerc;
+    // }
+
+    if (amount > 0) {
+      setState(() {
+        weightCntrl.text = (amount / gramRate).toStringAsFixed(3);
+      });
+    } else if (weight > 0) {
+      setState(() {
+        amtCntrl.text = (weight * gramRate).toStringAsFixed(2);
+      });
+    }
+
+    setState(() {
+      updatingFields = false;
+    });
+  }
+
+  bool updatingFields = false;
 
   bool isLoad = false;
 }

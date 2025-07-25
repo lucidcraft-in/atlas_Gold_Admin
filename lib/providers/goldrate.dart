@@ -76,14 +76,15 @@ class Goldrate with ChangeNotifier {
     }
   }
 
-  Future<void> create(GoldrateModel goldrateModel) async {
+  Future<void> create(GoldrateModel goldrateModel, double eightAmt) async {
     try {
       await collectionReference.add({
         'gram': goldrateModel.gram,
         'pavan': goldrateModel.pavan,
         'down': goldrateModel.down,
         'up': goldrateModel.up,
-        'timestamp': FieldValue.serverTimestamp()
+        'timestamp': FieldValue.serverTimestamp(),
+        "18gram": eightAmt
       });
       notifyListeners();
       final newGoldrate = GoldrateModel(
@@ -98,21 +99,19 @@ class Goldrate with ChangeNotifier {
     } catch (e) {}
   }
 
-  Future<void> update(String id, GoldrateModel goldrateModel) async {
+  Future<void> update(String id, GoldrateModel goldrateModel, eightAmt) async {
     try {
       await collectionReference.doc(id).update({
         'gram': goldrateModel.gram,
         'pavan': goldrateModel.pavan,
         'down': goldrateModel.down,
         'up': goldrateModel.up,
+        "18gram": eightAmt
       });
     } catch (e) {
       print(e);
     }
   }
-
-
-  
 
   Future<List?> read() async {
     QuerySnapshot querySnapshot;
@@ -128,6 +127,7 @@ class Goldrate with ChangeNotifier {
             "pavan": doc["pavan"],
             "down": doc["down"],
             "up": doc["up"],
+            "18gram": doc["18gram"]
           };
           goldaRateList.add(a);
         }

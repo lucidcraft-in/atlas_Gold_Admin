@@ -91,6 +91,8 @@ class _OverallTransactionScreenState extends State<OverallTransactionScreen> {
   List transList = [];
   double balanceReci = 0;
   double balancePurch = 0;
+  double balanceReciGram = 0;
+  double balancePurchGram = 0;
   String branchName = "";
   initialise() {
     Provider.of<TransactionProvider>(context, listen: false)
@@ -100,6 +102,8 @@ class _OverallTransactionScreenState extends State<OverallTransactionScreen> {
         transList = value[0];
         balanceReci = value[1];
         balancePurch = value[2];
+        balanceReciGram = value[3];
+        balancePurchGram = value[4];
       });
     });
   }
@@ -524,12 +528,24 @@ class _OverallTransactionScreenState extends State<OverallTransactionScreen> {
                                   fontWeight: FontWeight.w500,
                                   color: Color.fromARGB(255, 32, 110, 20)),
                             ),
-                            Text(
-                              balanceReci.toString(),
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: Color.fromARGB(255, 32, 110, 20)),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  balanceReci.toStringAsFixed(2),
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color.fromARGB(255, 32, 110, 20)),
+                                ),
+                                Text(
+                                  "${balanceReciGram.toStringAsFixed(3)} gm",
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color.fromARGB(255, 32, 110, 20)),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -545,12 +561,24 @@ class _OverallTransactionScreenState extends State<OverallTransactionScreen> {
                                   fontWeight: FontWeight.w500,
                                   color: Colors.red),
                             ),
-                            Text(
-                              balancePurch.toString(),
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.red),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "${balancePurch.toStringAsFixed(2)}",
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.red),
+                                ),
+                                Text(
+                                  "${balancePurchGram.toStringAsFixed(3)} gm",
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.red),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -568,12 +596,24 @@ class _OverallTransactionScreenState extends State<OverallTransactionScreen> {
                             fontWeight: FontWeight.w500,
                             color: Color.fromARGB(255, 0, 0, 0)),
                       ),
-                      Text(
-                        " ${balanceReci - balancePurch}",
-                        style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: Color.fromARGB(255, 0, 0, 0)),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            " ${(balanceReci - balancePurch).toStringAsFixed(2)}",
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: Color.fromARGB(255, 211, 126, 126)),
+                          ),
+                          Text(
+                            " ${(balanceReciGram - balancePurchGram).toStringAsFixed(3)} gm",
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: Color.fromARGB(255, 0, 0, 0)),
+                          ),
+                        ],
                       ),
                     ],
                   ),

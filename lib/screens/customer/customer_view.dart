@@ -11,6 +11,7 @@ import 'pay_amount.dart';
 import 'purchase_amount.dart';
 import '../../providers/user.dart';
 import '../../providers/transaction.dart';
+import 'setOpeningBalance.dart';
 import 'update_transaction.dart';
 import 'package:provider/provider.dart';
 
@@ -34,7 +35,9 @@ class _CustomerViewScreenState extends State<CustomerViewScreen> {
   List alllist = [];
   double balanceAmt = 0;
   double balancegram = 0;
-
+  double sum = 0;
+  var count = 0;
+  double averageGramRate = 0;
   var _isLoading = false;
   initialise() {
     db = TransactionProvider();
@@ -47,9 +50,36 @@ class _CustomerViewScreenState extends State<CustomerViewScreen> {
           alllist = value;
 
           transactionList = alllist[0];
-          balanceAmt = widget.user!["balance"];
+          balanceAmt = (widget.user!["balance"] as num).toDouble();
           balancegram = alllist[2];
+//           for (var transaction in transactionList) {
+//             print(transaction);
+
+//             // Ensure "transactionType" exists and is 0
+//             if (transaction["transactionType"] == 0 &&
+//                 transaction["amount"] != null) {
+//               sum += transaction["amount"];
+//               count += 1; // Count increments per valid transaction
+//             }
+//           }
+
+// // Avoid division by zero
+//           setState(() {
+//             averageGramRate = (count > 0) ? (sum / count) : 0;
+//           });
         }
+      });
+    });
+  }
+
+  int transactionCount = 0;
+  getCount(String custId) {
+    print(custId);
+    Provider.of<TransactionProvider>(context, listen: false)
+        .getTransactionCount(custId)
+        .then((value) {
+      setState(() {
+        transactionCount = value;
       });
     });
   }
@@ -60,6 +90,16 @@ class _CustomerViewScreenState extends State<CustomerViewScreen> {
         .then((val) {
       setState(() {
         data = val;
+        averageGramRate = double.parse(data[0]["balance"].toStringAsFixed(2)) /
+            double.parse(data[0]["total_gram"].toStringAsFixed(5));
+
+        if (averageGramRate.isInfinite || averageGramRate.isNaN) {
+          setState(() {
+            averageGramRate = 0;
+          });
+        }
+        // print("--------");
+        // print(averageGramRate);
       });
     });
     initialise();
@@ -75,6 +115,7 @@ class _CustomerViewScreenState extends State<CustomerViewScreen> {
       setState(() {
         staffType = Staff['type'];
       });
+      getCount(widget.user!['id']);
     } catch (e) {
       print(e);
     }
@@ -83,6 +124,7 @@ class _CustomerViewScreenState extends State<CustomerViewScreen> {
   @override
   void initState() {
     loginData();
+
     super.initState();
     getUpdateBalance();
 
@@ -247,7 +289,7 @@ class _CustomerViewScreenState extends State<CustomerViewScreen> {
                 padding: EdgeInsets.all(15),
                 child: Container(
                   width: double.infinity,
-                  height: MediaQuery.of(context).size.height * .2,
+                  // height: MediaQuery.of(context).size.height * .2,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(15),
@@ -290,7 +332,8 @@ class _CustomerViewScreenState extends State<CustomerViewScreen> {
                                       ),
                                       Text(
                                         data.isNotEmpty
-                                            ? data[0]["balance"].toString()
+                                            ? data[0]["balance"]
+                                                .toStringAsFixed(2)
                                             : 0.0.toString(),
                                         // alllist.isNotEmpty
                                         //     ? " + ₹ ${balanceAmt.toString()}"
@@ -305,56 +348,56 @@ class _CustomerViewScreenState extends State<CustomerViewScreen> {
                                 ],
                               ),
                             )),
-                            // Padding(
-                            //   padding: EdgeInsets.only(top: 10, bottom: 10),
-                            //   child: Container(
-                            //     width: 1,
-                            //     height: 100,
-                            //     color: Colors.black12,
-                            //   ),
-                            // ),
-                            // Expanded(
-                            //     child: Container(
-                            //    child: Column(
-                            //     mainAxisAlignment:
-                            //         MainAxisAlignment.spaceEvenly,
-                            //     children: [
-                            //       Text(
-                            //         "Total Gram ",
-                            //         textAlign: TextAlign.center,
-                            //         style: TextStyle(
-                            //             color: Colors.grey[500],
-                            //             fontFamily: 'latto'),
-                            //       ),
-                            //       Row(
-                            //         mainAxisAlignment: MainAxisAlignment.center,
-                            //         children: [
-                            //           FaIcon(
-                            //             FontAwesomeIcons.coins,
-                            //             size: 17,
-                            //             color: Theme.of(context).primaryColor,
-                            //           ),
-                            //           SizedBox(
-                            //             width: 10,
-                            //           ),
-                            //           Text(
-                            //             data.isNotEmpty
-                            //                 ? data[0]["total_gram"]
-                            //                     .toStringAsFixed(3)
-                            //                 : 0.toString(),
-                            //             // alllist != null
-                            //             //     ? " ${balancegram.toStringAsFixed(3)}"
-                            //             //     : "0.00",
-                            //             style: TextStyle(
-                            //                 fontWeight: FontWeight.bold,
-                            //                 fontFamily: 'latto',
-                            //                 fontSize: 15),
-                            //           ),
-                            //         ],
-                            //       )
-                            //     ],
-                            //   ),
-                            // ))
+                            Padding(
+                              padding: EdgeInsets.only(top: 10, bottom: 10),
+                              child: Container(
+                                width: 1,
+                                height: 100,
+                                color: Colors.black12,
+                              ),
+                            ),
+                            Expanded(
+                                child: Container(
+                              child: Column(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Text(
+                                    "Total Gram ",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                        color: Colors.grey[500],
+                                        fontFamily: 'latto'),
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      FaIcon(
+                                        FontAwesomeIcons.coins,
+                                        size: 17,
+                                        color: Theme.of(context).primaryColor,
+                                      ),
+                                      SizedBox(
+                                        width: 10,
+                                      ),
+                                      Text(
+                                        data.isNotEmpty
+                                            ? data[0]["total_gram"]
+                                                .toStringAsFixed(3)
+                                            : 0.toString(),
+                                        // alllist != null
+                                        //     ? " ${balancegram.toStringAsFixed(3)}"
+                                        //     : "0.00",
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontFamily: 'latto',
+                                            fontSize: 15),
+                                      ),
+                                    ],
+                                  )
+                                ],
+                              ),
+                            ))
                           ],
                         ),
                       ),
@@ -430,22 +473,30 @@ class _CustomerViewScreenState extends State<CustomerViewScreen> {
                                       MediaQuery.of(context).size.width * .1,
                                   child: ElevatedButton(
                                     onPressed: () {
+                                      // print(data[0]["total_gram"].runtimeType);
                                       Navigator.push(
                                           context,
                                           MaterialPageRoute(
                                               builder: (context) =>
                                                   PurchaseAmountScreen(
+                                                      avgGrmRate:
+                                                          averageGramRate,
+                                                      depositAmt: data[0]
+                                                          ["balance"],
                                                       user: widget.user!,
                                                       dbUser: widget.dbUser!,
                                                       userid:
                                                           widget.user!['id'],
                                                       token:
                                                           widget.user!['token'],
-                                                      balance:
-                                                          balanceAmt.toDouble(),
-                                                      custName: widget.user![
-                                                          'name']))).then(
-                                          (value) {
+                                                      balance: balanceAmt,
+                                                      custName:
+                                                          widget.user!['name'],
+                                                      totalGram: data[0]
+                                                          ["total_gram"]
+                                                      // totalGram: double.parse(
+                                                      //     data[0]["total_gram"]),
+                                                      ))).then((value) {
                                         if (value == true) {
                                           setState(() {
                                             getUpdateBalance();
@@ -539,7 +590,82 @@ class _CustomerViewScreenState extends State<CustomerViewScreen> {
                                 ),
                               ),
                             ),
+                      SizedBox(height: 20),
+                      // if (data.isNotEmpty)
+                      //   if (data[0]["balance"] != 0)
+                      //     Container(
+                      //       width: MediaQuery.of(context).size.width * .32,
+                      //       height: MediaQuery.of(context).size.width * .1,
+                      //       child: ElevatedButton(
+                      //         onPressed: () {
+                      //           Navigator.push(
+                      //               context,
+                      //               MaterialPageRoute(
+                      //                   builder: (context) => TransactionForm(
+                      //                         user: widget.user!,
+                      //                         dbUser: widget.dbUser!,
+                      //                         userid: widget.user!['id'],
+                      //                         token: widget.user!['token'],
+                      //                         balance: balanceAmt.toDouble(),
+                      //                         custName: widget.user!['name'],
+                      //                       ))).then((value) {
+                      //             if (value == true) {
+                      //               setState(() {
+                      //                 getUpdateBalance();
+                      //               });
+                      //             }
+                      //           });
+                      //         },
+                      //         style: ButtonStyle(
+                      //             backgroundColor:
+                      //                 MaterialStateProperty.all(Colors.white),
+                      //             shape: MaterialStateProperty.all<
+                      //                     RoundedRectangleBorder>(
+                      //                 RoundedRectangleBorder(
+                      //                     borderRadius:
+                      //                         BorderRadius.circular(15.0),
+                      //                     side: BorderSide(
+                      //                       color: Color.fromARGB(
+                      //                           255, 210, 111, 36),
+                      //                     )))),
+                      //         child: Row(
+                      //           mainAxisAlignment:
+                      //               MainAxisAlignment.spaceEvenly,
+                      //           // Replace with a Row for horizontal icon + text
+                      //           children: <Widget>[
+                      //             Icon(
+                      //               Icons.discount,
+                      //               color: Color.fromARGB(255, 210, 111, 36),
+                      //             ),
+                      //             Text(
+                      //               "Discount",
+                      //               style: TextStyle(
+                      //                   color: Colors.black,
+                      //                   fontSize: 14,
+                      //                   fontWeight: FontWeight.w500),
+                      //             )
+                      //           ],
+                      //         ),
+                      //       ),
+                      //     ),
+                      // if (data.isNotEmpty)
+                      //   if (data[0]["balance"] != 0) SizedBox(height: 20),
                     ],
+                  ),
+                ),
+              ),
+              Container(
+                padding: EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: useColor.homeIconColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  "Average Gram Rate: ${averageGramRate.toStringAsFixed(2)}",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
               ),
@@ -595,12 +721,21 @@ class _CustomerViewScreenState extends State<CustomerViewScreen> {
                                                     size: 22,
                                                     color: Colors.green[700],
                                                   )
-                                                : FaIcon(
-                                                    FontAwesomeIcons
-                                                        .minusCircle,
-                                                    size: 22,
-                                                    color: Colors.red[700],
-                                                  ),
+                                                : transactionList[index][
+                                                            'transactionType'] !=
+                                                        2
+                                                    ? FaIcon(
+                                                        FontAwesomeIcons
+                                                            .minusCircle,
+                                                        size: 22,
+                                                        color: Colors.red[700],
+                                                      )
+                                                    : FaIcon(
+                                                        FontAwesomeIcons
+                                                            .minusCircle,
+                                                        size: 22,
+                                                        color: Colors.orange,
+                                                      ),
                                           ),
                                           title: Row(
                                             children: [
@@ -636,7 +771,7 @@ class _CustomerViewScreenState extends State<CustomerViewScreen> {
                                             ],
                                           ),
                                           trailing: Text(
-                                            " ₹ ${transactionList[index]['amount'].toString()}",
+                                            "${transactionList[index]['gramWeight'].toStringAsFixed(3)} gm",
                                             style: TextStyle(
                                                 fontSize: 14,
                                                 fontFamily: "latto",
@@ -721,61 +856,62 @@ class _CustomerViewScreenState extends State<CustomerViewScreen> {
                                                       MainAxisAlignment
                                                           .spaceEvenly,
                                                   children: [
-                                                    // Row(
-                                                    //   mainAxisAlignment:
-                                                    //       MainAxisAlignment
-                                                    //           .spaceBetween,
-                                                    //   children: [
-                                                    //     Text(
-                                                    //       "Gram Price",
-                                                    //       style: TextStyle(
-                                                    //         fontFamily: 'latto',
-                                                    //         fontSize: 12,
-                                                    //         color:
-                                                    //             Colors.black87,
-                                                    //       ),
-                                                    //     ),
-                                                    //     Text(
-                                                    //       transactionList[index]
-                                                    //               [
-                                                    //               'gramPriceInvestDay']
-                                                    //           .toString(),
-                                                    //       style: TextStyle(
-                                                    //         fontFamily: 'latto',
-                                                    //         fontSize: 12,
-                                                    //         color:
-                                                    //             Colors.black87,
-                                                    //       ),
-                                                    //     )
-                                                    //   ],
-                                                    // ),
-                                                    // Row(
-                                                    //   mainAxisAlignment:
-                                                    //       MainAxisAlignment
-                                                    //           .spaceBetween,
-                                                    //   children: [
-                                                    //     Text(
-                                                    //       "Gram Weight",
-                                                    //       style: TextStyle(
-                                                    //         fontFamily: 'latto',
-                                                    //         fontSize: 12,
-                                                    //         color:
-                                                    //             Colors.black87,
-                                                    //       ),
-                                                    //     ),
-                                                    //     Text(
-                                                    //       transactionList[index]
-                                                    //               ['gramWeight']
-                                                    //           .toString(),
-                                                    //       style: TextStyle(
-                                                    //         fontFamily: 'latto',
-                                                    //         fontSize: 12,
-                                                    //         color:
-                                                    //             Colors.black87,
-                                                    //       ),
-                                                    //     )
-                                                    //   ],
-                                                    // ),
+                                                    Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceBetween,
+                                                      children: [
+                                                        Text(
+                                                          "Gram Price",
+                                                          style: TextStyle(
+                                                            fontFamily: 'latto',
+                                                            fontSize: 12,
+                                                            color:
+                                                                Colors.black87,
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          transactionList[index]
+                                                                  [
+                                                                  'gramPriceInvestDay']
+                                                              .toString(),
+                                                          style: TextStyle(
+                                                            fontFamily: 'latto',
+                                                            fontSize: 12,
+                                                            color:
+                                                                Colors.black87,
+                                                          ),
+                                                        )
+                                                      ],
+                                                    ),
+                                                    Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceBetween,
+                                                      children: [
+                                                        Text(
+                                                          "Recieved Amount",
+                                                          style: TextStyle(
+                                                            fontFamily: 'latto',
+                                                            fontSize: 12,
+                                                            color:
+                                                                Colors.black87,
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          transactionList[index]
+                                                                  ['amount']
+                                                              .toStringAsFixed(
+                                                                  2),
+                                                          style: TextStyle(
+                                                            fontFamily: 'latto',
+                                                            fontSize: 12,
+                                                            color:
+                                                                Colors.black87,
+                                                          ),
+                                                        )
+                                                      ],
+                                                    ),
                                                     Container(
                                                       height: 1,
                                                       color: Colors.black12,
@@ -795,7 +931,7 @@ class _CustomerViewScreenState extends State<CustomerViewScreen> {
                                                           ),
                                                         ),
                                                         Text(
-                                                          " ₹ ${transactionList[index]['amount'].toString()}",
+                                                          " ₹ ${transactionList[index]['amount'].toStringAsFixed(2)}",
                                                           style: TextStyle(
                                                               fontSize: 14,
                                                               fontFamily:

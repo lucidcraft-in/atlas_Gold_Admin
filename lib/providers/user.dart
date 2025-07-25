@@ -132,13 +132,15 @@ class User with ChangeNotifier {
     return _user.length;
   }
 
-  Future<bool?> create(
+  Future<String?> create(
       UserModel userModel,
       String customerId,
       String schemeType,
       String assignStaff,
       String assignStaffName,
-      String orderAdv) async {
+      String orderAdv,
+      String limit,
+      DateTime selectOpnDate) async {
     try {
       QuerySnapshot querySnapshot;
 
@@ -149,7 +151,7 @@ class User with ChangeNotifier {
       // print('Selected Scheme Name: ${scheme!.name}');
 
       if (user.length == 0) {
-        await collectionReference.add({
+        DocumentReference docRef = await collectionReference.add({
           'name': userModel.name,
           'custId': customerId,
           'phone_no': userModel.phoneNo,
@@ -178,23 +180,27 @@ class User with ChangeNotifier {
           "otpExp": FieldValue.serverTimestamp(),
           "otpGen": FieldValue.serverTimestamp(),
           "mail": userModel.mailId,
-          "orderAdvance": orderAdv
+          "orderAdvance": orderAdv,
+          "limit": limit != "5000 - 25000" ? "baseLimit" : "upperLimit",
+          "accountOpeningDate": selectOpnDate
           // "staffAssigneeId": assignStaff,
           // "staffAssigneeName": assignStaffName
         });
 
-        return Future<bool>.value(false);
+        return docRef.id;
       } else {
-        return Future<bool>.value(true);
+        return null;
       }
     } catch (e) {
-      print(e);
+      return null;
     }
   }
 
   Future<bool?> update(String id, UserModel userModel, bool changeCustIdIS,
-      String balance) async {
+      String balance, String assignStaff, String assignStaffName) async {
     try {
+      print(assignStaff);
+      print(assignStaffName);
       QuerySnapshot querySnapshot;
 
       querySnapshot = await collectionReference.orderBy('custId').get();
@@ -202,17 +208,20 @@ class User with ChangeNotifier {
           querySnapshot.docs.where((doc) => doc['custId'] == userModel.custId);
 
       if (changeCustIdIS == true) {
+        print("=======");
         if (user.length == 0) {
           await collectionReference.doc(id).update({
             'name': userModel.name,
             // 'custId': userModel.custId,
             'phone_no': userModel.phoneNo,
             'address': userModel.address,
-            'place': userModel.place,
             "balance": double.parse(balance),
+            'place': userModel.place,
             'schemeType': userModel.schemeType,
             'dateofBirth': userModel.dateofBirth,
             'nominee': userModel.nominee,
+            'staffId': assignStaff,
+            'staffName': assignStaffName,
             'nomineePhone': userModel.nomineePhone,
             'nomineeRelation': userModel.nomineeRelation,
             'adharCard': userModel.adharCard,
@@ -225,16 +234,19 @@ class User with ChangeNotifier {
           return Future<bool>.value(true);
         }
       } else {
+        print("===== +++++++++++++ ====");
         await collectionReference.doc(id).update({
           'name': userModel.name,
           // 'custId': userModel.custId,
           'phone_no': userModel.phoneNo,
           'address': userModel.address,
-          'place': userModel.place,
           "balance": double.parse(balance),
+          'place': userModel.place,
           'schemeType': userModel.schemeType,
           'dateofBirth': userModel.dateofBirth,
           'nominee': userModel.nominee,
+          'staffId': assignStaff,
+          'staffName': assignStaffName,
           'nomineePhone': userModel.nomineePhone,
           'nomineeRelation': userModel.nomineeRelation,
           'adharCard': userModel.adharCard,
@@ -297,6 +309,7 @@ class User with ChangeNotifier {
             "panCard": doc['panCard'],
             "pinCode": doc['pinCode'],
             "staffName": doc['staffName'],
+            "limit": doc["limit"]
           };
           userlist.add(a);
         }
@@ -355,6 +368,7 @@ class User with ChangeNotifier {
             "panCard": doc['panCard'],
             "pinCode": doc['pinCode'],
             "staffName": doc['staffName'],
+            "limit": doc["limit"]
           };
           userlist.add(a);
         }
@@ -364,6 +378,66 @@ class User with ChangeNotifier {
     } catch (e) {
       print(e);
     }
+  }
+
+  Future<Map<String, dynamic>?> readCustAfterCreate(
+      int staffType, String staffId, String docId) async {
+    QuerySnapshot? querySnapshot;
+    print("---+++++--");
+    DocumentSnapshot docSnapshot = await collectionReference.doc(docId).get();
+    try {
+      String custId = docSnapshot.get("custId");
+      if (staffType == 1) {
+        querySnapshot = await collectionReference
+            .orderBy("custId", descending: false)
+            .where("custId", isEqualTo: custId)
+            .where("isClosed", isEqualTo: "false")
+            // .orderBy("balance", descending: false)
+            .get();
+      } else {
+        querySnapshot = await collectionReference
+            .where("staffId", isEqualTo: staffId)
+            .where("custId", isEqualTo: custId)
+            .orderBy("custId", descending: false)
+            .where("isClosed", isEqualTo: "false")
+            // .orderBy("balance", descending: false)
+            .get();
+      }
+      print(querySnapshot.docs.length);
+      if (querySnapshot.docs.isNotEmpty) {
+        var doc = querySnapshot.docs.first;
+
+        Map<String, dynamic> userData = {
+          "id": doc.id,
+          "name": doc['name'],
+          "custId": doc["custId"],
+          'isClosed': doc["isClosed"],
+          "balance": doc["balance"],
+          "phoneNo": doc["phone_no"],
+          "address": doc["address"],
+          "place": doc["place"],
+          "staffId": doc["staffId"],
+          "token": doc["token"],
+          "schemeType": doc["schemeType"],
+          "total_gram": doc["total_gram"],
+          "branch": doc['branch'],
+          "dateofBirth": doc['dateofBirth'],
+          "nominee": doc['nominee'],
+          "nomineePhone": doc['nomineePhone'],
+          "nomineeRelation": doc['nomineeRelation'],
+          "adharCard": doc['adharCard'],
+          "panCard": doc['panCard'],
+          "pinCode": doc['pinCode'],
+          "staffName": doc['staffName'],
+          "limit": doc["limit"]
+        };
+
+        return userData; // Return user data
+      }
+    } catch (e) {
+      print(e);
+    }
+    return null; // Return null if no data found
   }
 
   Future<List?> readbyBranchId(int branchId) async {
@@ -472,6 +546,7 @@ class User with ChangeNotifier {
           // print(" === c====");
 
           double paidAmount = 0, purchase = 0;
+          double paidGram = 0, purchaseGram = 0;
 
           // Filter transactions that belong to the current user
           var userTransactions = querySnapshotTrans.docs
@@ -483,15 +558,20 @@ class User with ChangeNotifier {
 
           // Calculate paid and purchase amounts
           for (var docTran in userTransactions) {
+            print(docTran["gramWeight"]);
             if (docTran["transactionType"] == 0) {
               paidAmount += docTran["amount"];
+              paidGram += docTran["gramWeight"];
             } else {
               purchase += docTran["amount"];
+              purchaseGram += docTran["gramWeight"];
             }
           }
-
+          double balanceGram = paidGram - purchaseGram;
           double balance = paidAmount - purchase;
-
+          print(paidGram);
+          print(purchaseGram);
+          print(balanceGram);
           // if (doc["balance"] != 0) {
           userlist.add({
             "id": doc.id,
@@ -508,6 +588,9 @@ class User with ChangeNotifier {
             "total_gram": doc["total_gram"],
             "purchase": purchase,
             "custBalance": balance,
+            "paidGram": paidGram,
+            "purchaseGram": purchaseGram,
+            "balanceGram": balanceGram,
             "branch": doc['branch'],
             "dateofBirth": doc['dateofBirth'],
             "nominee": doc['nominee'],

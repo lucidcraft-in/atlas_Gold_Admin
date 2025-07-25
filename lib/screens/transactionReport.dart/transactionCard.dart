@@ -64,14 +64,28 @@ class TransactionTile extends StatelessWidget {
           ),
 
           // Amount
-          Text(
-            amount,
-            style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: transaction["transactionType"] == 0
-                    ? Color.fromARGB(255, 32, 110, 20)
-                    : Colors.red),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                amount,
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: transaction["transactionType"] == 0
+                        ? Color.fromARGB(255, 32, 110, 20)
+                        : Colors.red),
+              ),
+              Text(
+                "${transaction["gramWeight"].toStringAsFixed(3)} gm",
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: transaction["transactionType"] == 0
+                        ? Color.fromARGB(255, 32, 110, 20)
+                        : Colors.red),
+              ),
+            ],
           ),
         ],
       ),

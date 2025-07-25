@@ -97,7 +97,9 @@ class _UpdateTransactionState extends State<UpdateTransaction> {
     selectedValue = widget.transaction['category'];
 
     gramPriceInvestDay = widget.transaction['gramPriceInvestDay'].toDouble();
-    totalGramBefore = widget.transaction['gramWeight'];
+    totalGramBefore = widget.transaction['transactionType'] == 2
+        ? double.parse(widget.transaction['gramWeight'].toString())
+        : widget.transaction['gramWeight'];
 
     _transaction = TransactionModel(
       customerName: widget.transaction["customerName"],
@@ -184,7 +186,6 @@ class _UpdateTransactionState extends State<UpdateTransaction> {
       await Provider.of<TransactionProvider>(context, listen: false).delete(
           widget.transaction['id'],
           _transaction,
-          transactiontype,
           oldValueFromDb,
           totalGramBefore);
       userDb = User();
@@ -273,9 +274,13 @@ class _UpdateTransactionState extends State<UpdateTransaction> {
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: <Widget>[
                               TextFormField(
+                                readOnly:
+                                    widget.transaction['transactionType'] == 2
+                                        ? true
+                                        : false,
                                 keyboardType: TextInputType.number,
-                                initialValue:
-                                    widget.transaction['amount'].toString(),
+                                initialValue: widget.transaction['amount']
+                                    .toStringAsFixed(2),
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
                                     return 'Amount';

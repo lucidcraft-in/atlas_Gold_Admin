@@ -1,8 +1,13 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../constant/colors.dart';
-import '../../providers/transaction.dart';
+import '../../providers/staff.dart';
 import '../../providers/user.dart';
+import '../../providers/user.dart';
+import '../customer/customer_screen.dart';
 import 'package:intl/intl.dart';
 
 class UpdateCustomerScreen extends StatefulWidget {
@@ -20,8 +25,11 @@ class _UpdateCustomerScreenState extends State<UpdateCustomerScreen> {
   String selectedValue = 'Monthly';
   bool changeCustIdIS = false;
   DateTime? selectedDate;
+  var staffDetails;
   DateTime now = DateTime.now();
-
+  String _selectStaff = "";
+  String _selectStaffName = "";
+  List staffList = [];
   var _isLoading = false;
   var _user = UserModel(
     id: '',
@@ -67,24 +75,15 @@ class _UpdateCustomerScreenState extends State<UpdateCustomerScreen> {
   }
 
   @override
-  void didChangeDependencies() {
-    // TODO: implement didChangeDependencies
-    super.didChangeDependencies();
-    getTransaction(widget.user!['id']);
-  }
-
-  double? oldBalance;
-
-  @override
   void initState() {
     super.initState();
-
-    oldBalance = widget.user!['balance'];
     balanceCnttrl.text = widget.user!['balance'].toString();
     selectedValue = widget.user!['schemeType'];
-
+    getStaff();
     setState(() {
       selectedDate = widget.user!['dateofBirth'].toDate();
+      _selectStaff = widget.user!["staffId"];
+      _selectStaffName = widget.user!["staffName"];
     });
     // print(selectedDate);
     _user = UserModel(
@@ -113,6 +112,21 @@ class _UpdateCustomerScreenState extends State<UpdateCustomerScreen> {
         staffName: _user.staffName);
   }
 
+  getStaff() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      staffDetails = jsonDecode(prefs.getString('staff')!);
+    });
+    Provider.of<Staff>(context, listen: false).read().then((value) {
+      // print("==================");
+      // print(value);
+      setState(() {
+        staffList = value!;
+      });
+    });
+  }
+
   Future<void> _delete() async {
     try {
       try {
@@ -137,6 +151,7 @@ class _UpdateCustomerScreenState extends State<UpdateCustomerScreen> {
           ),
         );
       } catch (err) {
+        print(err);
         await showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
@@ -160,12 +175,8 @@ class _UpdateCustomerScreenState extends State<UpdateCustomerScreen> {
   }
 
   Future<void> _saveForm() async {
-    // if (isLoad) return;
     final isValid = _formKey.currentState!.validate();
     if (!isValid) {
-      setState(() {
-        isLoad = false;
-      });
       return;
     }
     _user = UserModel(
@@ -198,28 +209,31 @@ class _UpdateCustomerScreenState extends State<UpdateCustomerScreen> {
     });
     try {
       var result = await Provider.of<User>(context, listen: false).update(
-          widget.user!['id'], _user, changeCustIdIS, balanceCnttrl.text);
+          widget.user!['id'],
+          _user,
+          changeCustIdIS,
+          balanceCnttrl.text,
+          _selectStaff,
+          _selectStaffName);
 
       if (result == false) {
         final snackBar = SnackBar(content: const Text('Saved successfully!'));
+
         ScaffoldMessenger.of(context).showSnackBar(snackBar);
+
         setState(() {
           _isLoading = false;
           Navigator.of(context).pop();
+          // Navigator.pushReplacement(context,
+          //     MaterialPageRoute(builder: (context) => CustomerScreen()));
         });
       } else {
-        setState(() {
-          isLoad = false;
-        });
         final snackBar = SnackBar(
           content: const Text('Customer id is exist!'),
         );
         ScaffoldMessenger.of(context).showSnackBar(snackBar);
       }
     } catch (err) {
-      setState(() {
-        isLoad = false;
-      });
       await showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
@@ -238,28 +252,18 @@ class _UpdateCustomerScreenState extends State<UpdateCustomerScreen> {
     }
   }
 
+  bool isLoad = false;
   TextEditingController balanceCnttrl = TextEditingController();
-  List transaction = [];
-  getTransaction(String staffId) {
-    Provider.of<TransactionProvider>(context).read(staffId).then((val) {
-      setState(() {
-        transaction = val![0];
-      });
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: Colors.blueGrey.shade50,
         appBar: AppBar(
-            centerTitle: true,
             backgroundColor: useColor.homeIconColor,
             elevation: 0,
             title: Text(
               "Update Customer",
-              style:
-                  TextStyle(fontFamily: 'latto', fontWeight: FontWeight.bold),
             )),
         body: Padding(
           padding: const EdgeInsets.all(15.0),
@@ -272,6 +276,42 @@ class _UpdateCustomerScreenState extends State<UpdateCustomerScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
+                      if (staffDetails["type"] == 1)
+                        SizedBox(
+                          height: 12,
+                        ),
+                      if (staffDetails["type"] == 1)
+                        DropdownButtonFormField<String>(
+                          value: _selectStaff,
+                          hint: Text('Select Staff'),
+                          onChanged: (newValue) {
+                            setState(() {
+                              _selectStaff = newValue!;
+                              _selectStaffName = staffList.firstWhere(
+                                (staff) => staff["id"] == newValue,
+                                orElse: () => {
+                                  "staffName": ""
+                                }, // Provide a default value in case no match is found
+                              )["staffName"];
+                            });
+                            // print('Selected Staff ID: $_selectStaff');
+                            // print('Selected Staff Name: $_selectStaffName');
+                          },
+                          items:
+                              staffList.map<DropdownMenuItem<String>>((staff) {
+                            return DropdownMenuItem<String>(
+                              value: staff["id"],
+                              child: Text(staff["staffName"]),
+                            );
+                          }).toList(),
+                          decoration: InputDecoration(
+                            labelText: 'Select Staff',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      SizedBox(
+                        height: 12,
+                      ),
                       TextFormField(
                         initialValue: widget.user!['name'],
                         validator: (value) {
@@ -318,6 +358,59 @@ class _UpdateCustomerScreenState extends State<UpdateCustomerScreen> {
                             ),
                           ),
                           labelText: 'Enter Cutomer name',
+                        ),
+                      ),
+                      SizedBox(
+                        height: 14,
+                      ),
+                      TextFormField(
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please Phone ';
+                          }
+                          return null;
+                        },
+                        initialValue: widget.user!['phoneNo'],
+                        onSaved: (value) {
+                          _user = UserModel(
+                            name: _user.name,
+                            custId: _user.custId,
+                            phoneNo: value!,
+                            address: _user.address,
+                            place: _user.place,
+                            mailId: _user.mailId,
+                            schemeType: _user.schemeType,
+                            balance: _user.balance,
+                            id: _user.id,
+                            staffId: _user.staffId,
+                            token: _user.token,
+                            totalGram: _user.totalGram,
+                            branch: _user.branch,
+                            dateofBirth: _user.dateofBirth,
+                            nominee: _user.nominee,
+                            nomineePhone: _user.nomineePhone,
+                            nomineeRelation: _user.nomineeRelation,
+                            adharCard: _user.adharCard,
+                            panCard: _user.panCard,
+                            pinCode: _user.pinCode,
+                            staffName: _user.staffName,
+                          );
+                        },
+                        decoration: const InputDecoration(
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.red,
+                              width: 1.0,
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.black,
+                              width: 1.0,
+                            ),
+                          ),
+                          labelText: 'Phone number',
                         ),
                       ),
                       SizedBox(
@@ -856,47 +949,32 @@ class _UpdateCustomerScreenState extends State<UpdateCustomerScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
                           Container(
-                              width: MediaQuery.of(context).size.width * .3,
-                              height: MediaQuery.of(context).size.height * .06,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(15),
-                                color: useColor.homeIconColor,
-                              ),
-                              child: TextButton(
-                                onPressed: () {
-                                  if (isLoad)
-                                    return; // Prevent multiple taps when already saving
-
-                                  setState(() {
-                                    isLoad = true;
-                                  });
-
-                                  if (oldBalance.toString() ==
-                                      balanceCnttrl.text) {
-                                    _saveForm();
-                                  } else {
-                                    if (transaction.isNotEmpty) {
-                                      setState(() {
-                                        isLoad = false;
-                                      });
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                            content:
-                                                Text('Balance Can\'t Update')),
-                                      );
-                                    } else {
-                                      print("--- transaction empty ------");
-                                      _saveForm();
-                                    }
-                                  }
-                                },
-                                child: isLoad
-                                    ? Text('Saving...',
-                                        style: TextStyle(color: Colors.white))
-                                    : Text('Save',
-                                        style: TextStyle(color: Colors.white)),
-                              )),
+                            width: MediaQuery.of(context).size.width * .3,
+                            height: MediaQuery.of(context).size.height * .06,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(15),
+                              color: useColor.homeIconColor,
+                            ),
+                            child: TextButton(
+                              onPressed: () {
+                                setState(() {
+                                  isLoad = true;
+                                });
+                                if (isLoad == true) {
+                                  _saveForm();
+                                }
+                              },
+                              child: isLoad == false
+                                  ? Text(
+                                      'Update',
+                                      style: TextStyle(color: Colors.white),
+                                    )
+                                  : Text(
+                                      'Update....',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                            ),
+                          ),
                         ],
                       ),
                     ],
@@ -907,6 +985,4 @@ class _UpdateCustomerScreenState extends State<UpdateCustomerScreen> {
           ),
         ));
   }
-
-  bool isLoad = false;
 }

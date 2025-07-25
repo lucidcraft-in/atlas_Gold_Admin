@@ -97,7 +97,8 @@ class TransactionProvider with ChangeNotifier {
   double gramTotalWeight = 0;
   double gramTotalWeightFinal = 0;
 
-  Future create(TransactionModel transactionModel) async {
+  Future create(TransactionModel transactionModel, String schemeType,
+      double totalWeight, String inputGoldwgt) async {
     QuerySnapshot querySnapshot;
     QuerySnapshot goldRate;
 
@@ -125,15 +126,20 @@ class TransactionProvider with ChangeNotifier {
       if (transactionModel.transactionType == 0) {
         // gram wait for recieve
         // gramWeight = transactionModel.amount / goldRate.docs[0]['gram'];
-
-        var threePerc = 3 * transactionModel.gramPriceInvestDay / 100;
-        var totalAmount = threePerc + transactionModel.gramPriceInvestDay;
-        gramWeight = transactionModel.amount / totalAmount;
-        // gramWeight =
-        //     transactionModel.amount / transactionModel.gramPriceInvestDay;
+        // if (schemeType == "1 Year") {
+        //   var threePerc = 3 * transactionModel.gramPriceInvestDay / 100;
+        //   var totalAmount = threePerc + transactionModel.gramPriceInvestDay;
+        //   gramWeight = transactionModel.amount / totalAmount;
+        // } else {
+        //   gramWeight =
+        //       transactionModel.amount / transactionModel.gramPriceInvestDay;
+        // }
+        gramWeight =
+            transactionModel.amount / transactionModel.gramPriceInvestDay;
+        ;
       } else {
         // gram weight for purchase
-
+        // gramWeight = totalWeight - double.parse(inputGoldwgt);
         if (averageRate != 0) {
           gramWeight = transactionModel.amount / averageRate;
         }
@@ -357,12 +363,8 @@ class TransactionProvider with ChangeNotifier {
     }
   }
 
-  Future<void> delete(
-      String transId,
-      TransactionModel transactionModel,
-      String transactionType,
-      double oldValueFromDb,
-      double totalGramBefore) async {
+  Future<void> delete(String transId, TransactionModel transactionModel,
+      double oldValueFromDb, double totalGramBefore) async {
     QuerySnapshot querySnapshot;
     QuerySnapshot querySnapshotTran;
     String usrId = "";
@@ -370,7 +372,7 @@ class TransactionProvider with ChangeNotifier {
     double oldval = 0.0;
     double curtrentBal = 0.0;
     double finalGramWight = 0.0;
-
+    print("---1---");
     querySnapshotTran = await collectionReference.get();
     if (querySnapshotTran.docs.isNotEmpty) {
       for (var doc in querySnapshotTran.docs
@@ -379,10 +381,12 @@ class TransactionProvider with ChangeNotifier {
         transType = doc["transactionType"];
         oldval = doc["amount"];
         usrId = doc['customerId'];
-        gramWeight = doc['gramWeight'];
+        gramWeight = doc["transactionType"] == 2
+            ? double.parse(doc['gramWeight'].toString())
+            : doc['gramWeight'];
       }
     }
-
+    print("---2---");
     try {
       querySnapshot = await collectionReferenceUser.get();
 
@@ -399,7 +403,7 @@ class TransactionProvider with ChangeNotifier {
           }
         }
       }
-
+      print("---3---");
       await collectionReferenceUser
           .doc(usrId)
           .update({'balance': newbalance, 'total_gram': finalGramWight});
@@ -500,7 +504,7 @@ class TransactionProvider with ChangeNotifier {
     // branch: 1 = Alathur
     // branch : 2= chittur
     // branch : 3= vadakkanchari
-    var branchCode = 0;
+
     // if (branchId == "Alathur") {
     //   branchCode = 1;
     // } else if (branchId == "Chittur") {
@@ -535,6 +539,7 @@ class TransactionProvider with ChangeNotifier {
         querySnapshot = await collectionReference
             .where("date", isGreaterThanOrEqualTo: startDate)
             .where("date", isLessThan: endDate)
+            .orderBy("date", descending: false)
             .get();
 
         for (var doc in querySnapshot.docs.toList()) {
@@ -574,6 +579,7 @@ class TransactionProvider with ChangeNotifier {
         querySnapshot = await collectionReference
             .where("date", isGreaterThanOrEqualTo: startDate)
             .where("date", isLessThanOrEqualTo: endDate)
+            .orderBy("date", descending: false)
             // .where("branch", isEqualTo: branchCode)
             .get();
         for (var doc in querySnapshot.docs.toList()) {
@@ -611,6 +617,7 @@ class TransactionProvider with ChangeNotifier {
         querySnapshot = await collectionReference
             .where("date", isGreaterThanOrEqualTo: startDate)
             .where("date", isLessThanOrEqualTo: endDate)
+            .orderBy("date", descending: false)
             .where("transactionMode", isEqualTo: paymentType)
             .get();
         for (var doc in querySnapshot.docs.toList()) {
@@ -648,6 +655,7 @@ class TransactionProvider with ChangeNotifier {
         querySnapshot = await collectionReference
             .where("date", isGreaterThanOrEqualTo: startDate)
             .where("date", isLessThanOrEqualTo: endDate)
+            .orderBy("date", descending: false)
             // .where("branch", isEqualTo: branchCode)
             .where("transactionMode", isEqualTo: paymentType)
             .get();
@@ -693,20 +701,29 @@ class TransactionProvider with ChangeNotifier {
       //   // }
 
       // }
-
+      double paidBalanceGram = 0;
+      double prBalanceGram = 0;
       for (var doc in querySnapshot.docs.toList()) {
         // print(doc["transactionType"]);
 
-        // print(doc["amount"]);
-        // print("-");
+        print(doc["gramWeight"]);
+        print("-");
         if (doc["transactionType"] == 1) {
+          prBalanceGram = prBalanceGram + doc["gramWeight"];
           balancePr = balancePr + doc["amount"];
         } else {
+          paidBalanceGram = paidBalanceGram + doc["gramWeight"];
           balancePaid = balancePaid + doc["amount"];
         }
       }
 
-      return [transactionList, balancePaid, balancePr];
+      return [
+        transactionList,
+        balancePaid,
+        balancePr,
+        paidBalanceGram,
+        prBalanceGram
+      ];
     } catch (e) {
       print(e);
     }
@@ -781,5 +798,66 @@ class TransactionProvider with ChangeNotifier {
     }
 
     return transactionList;
+  }
+
+  Future<int> getTransactionCount(String id) async {
+    try {
+      QuerySnapshot querySnapshot =
+          await collectionReference.where("customerId", isEqualTo: id).get();
+
+      return querySnapshot.size; // Returns the count of documents
+    } catch (e) {
+      print(e);
+      return 0; // Return 0 in case of an error
+    }
+  }
+
+  getTotalBalance() async {
+    List transactionList = [];
+    QuerySnapshot querySnapshot;
+    querySnapshot = await collectionReference.get();
+    for (var doc in querySnapshot.docs.toList()) {
+      Map a = {
+        "id": doc.id,
+        'customerName': doc['customerName'],
+        'customerId': doc['customerId'],
+        'date': doc['date'],
+        'amount': doc['amount'],
+        'transactionType': doc['transactionType'],
+        'note': doc['note'],
+        'invoiceNo': doc['invoiceNo'],
+        'category': doc['category'],
+        'discount': doc['discount'],
+        'staffId': doc['staffId'],
+        'gramWeight': doc['gramWeight'],
+        'gramPriceInvestDay': doc['gramPriceInvestDay'],
+        // 'branch': doc['branch'],
+        'staffName': doc['transactionMode'] != "online" ? doc['staffName'] : "",
+        // "custID": customerId
+      };
+      transactionList.add(a);
+    }
+    double paidBalanceGram = 0;
+    double prBalanceGram = 0;
+    double balancePr = 0;
+    double balancePaid = 0;
+    for (var doc in querySnapshot.docs.toList()) {
+      // print(doc["transactionType"]);
+
+      print(doc["gramWeight"]);
+      print("-");
+      if (doc["transactionType"] == 1) {
+        prBalanceGram = prBalanceGram + doc["gramWeight"];
+        balancePr = balancePr + doc["amount"];
+      } else if (doc["transactionType"] == 0) {
+        paidBalanceGram = paidBalanceGram + doc["gramWeight"];
+        balancePaid = balancePaid + doc["amount"];
+      }
+    }
+
+    double balanceAmt = balancePaid - balancePr;
+    double balanceGrem = paidBalanceGram - prBalanceGram;
+
+    return [balanceAmt, balanceGrem];
   }
 }
