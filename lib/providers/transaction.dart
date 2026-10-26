@@ -704,10 +704,6 @@ class TransactionProvider with ChangeNotifier {
       double paidBalanceGram = 0;
       double prBalanceGram = 0;
       for (var doc in querySnapshot.docs.toList()) {
-        // print(doc["transactionType"]);
-
-        print(doc["gramWeight"]);
-        print("-");
         if (doc["transactionType"] == 1) {
           prBalanceGram = prBalanceGram + doc["gramWeight"];
           balancePr = balancePr + doc["amount"];
@@ -842,10 +838,6 @@ class TransactionProvider with ChangeNotifier {
     double balancePr = 0;
     double balancePaid = 0;
     for (var doc in querySnapshot.docs.toList()) {
-      // print(doc["transactionType"]);
-
-      print(doc["gramWeight"]);
-      print("-");
       if (doc["transactionType"] == 1) {
         prBalanceGram = prBalanceGram + doc["gramWeight"];
         balancePr = balancePr + doc["amount"];

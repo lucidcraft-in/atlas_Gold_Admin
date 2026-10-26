@@ -558,7 +558,6 @@ class User with ChangeNotifier {
 
           // Calculate paid and purchase amounts
           for (var docTran in userTransactions) {
-            print(docTran["gramWeight"]);
             if (docTran["transactionType"] == 0) {
               paidAmount += docTran["amount"];
               paidGram += docTran["gramWeight"];
@@ -569,9 +568,6 @@ class User with ChangeNotifier {
           }
           double balanceGram = paidGram - purchaseGram;
           double balance = paidAmount - purchase;
-          print(paidGram);
-          print(purchaseGram);
-          print(balanceGram);
           // if (doc["balance"] != 0) {
           userlist.add({
             "id": doc.id,
@@ -942,6 +938,136 @@ class User with ChangeNotifier {
       }
     }
     return userList;
+  }
+
+  Future<Map<String, dynamic>> getClosedUserPaginated({
+    required DateTime selectDate,
+    DocumentSnapshot? lastDocument,
+    int limit = 15,
+  }) async {
+    List<Map<String, dynamic>> userList = [];
+    final firstDayofMonth = DateTime(selectDate.year, selectDate.month, 1, 0, 0, 0);
+    final lastDayOfMonth =
+        DateTime(selectDate.year, selectDate.month + 1, 0, 23, 59, 59, 999);
+
+    try {
+      Query query = collectionReference
+          .where("isClosed", isEqualTo: "true")
+          .where("closedAt", isGreaterThanOrEqualTo: Timestamp.fromDate(firstDayofMonth))
+          .where("closedAt", isLessThanOrEqualTo: Timestamp.fromDate(lastDayOfMonth))
+          .orderBy("closedAt", descending: true)
+          .limit(limit);
+
+      if (lastDocument != null) {
+        query = query.startAfterDocument(lastDocument);
+      }
+
+      QuerySnapshot querySnapshot = await query.get();
+
+      for (var doc in querySnapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>?;
+        Map<String, dynamic> a = {
+          "id": doc.id,
+          "name": data?['name'] ?? "",
+          "custId": data?["custId"] ?? "",
+          "phoneNo": data?["phone_no"] ?? "",
+          'balaceAtClose': data?["balaceAtClose"] ?? 0,
+          'closeTotal_gram': data?["closeTotal_gram"] ?? 0,
+          'closedAt': data?["closedAt"],
+          'isClosed': data?["isClosed"] ?? "false",
+          "address": data?["address"] ?? "",
+          "place": data?["place"] ?? "",
+          "balance": data?["balance"] ?? 0,
+          "staffId": data?["staffId"] ?? "",
+          "schemeType": data?["schemeType"] ?? "",
+          "branch": data?['branch'] ?? 0,
+          "dateofBirth": data?['dateofBirth'],
+          "nominee": data?['nominee'] ?? "",
+          "nomineePhone": data?['nomineePhone'] ?? "",
+          "nomineeRelation": data?['nomineeRelation'] ?? "",
+          "adharCard": data?['adharCard'] ?? "",
+          "panCard": data?['panCard'] ?? "",
+          "pinCode": data?['pinCode'] ?? "",
+          "staffName": data?['staffName'] ?? "",
+        };
+        userList.add(a);
+      }
+
+      DocumentSnapshot? newLastDoc =
+          querySnapshot.docs.isNotEmpty ? querySnapshot.docs.last : null;
+      bool hasMore = querySnapshot.docs.length == limit;
+
+      return {
+        "users": userList,
+        "lastDocument": newLastDoc,
+        "hasMore": hasMore,
+      };
+    } catch (e) {
+      print("Primary getClosedUserPaginated query error (check if index is required): $e");
+
+      // Fallback: Query by single-field range on closedAt (doesn't require composite index)
+      try {
+        Query fallbackQuery = collectionReference
+            .where("closedAt", isGreaterThanOrEqualTo: Timestamp.fromDate(firstDayofMonth))
+            .where("closedAt", isLessThanOrEqualTo: Timestamp.fromDate(lastDayOfMonth))
+            .orderBy("closedAt", descending: true)
+            .limit(limit);
+
+        if (lastDocument != null) {
+          fallbackQuery = fallbackQuery.startAfterDocument(lastDocument);
+        }
+
+        QuerySnapshot querySnapshot = await fallbackQuery.get();
+
+        for (var doc in querySnapshot.docs) {
+          final data = doc.data() as Map<String, dynamic>?;
+          if (data != null && data['isClosed'] == "true") {
+            Map<String, dynamic> a = {
+              "id": doc.id,
+              "name": data['name'] ?? "",
+              "custId": data["custId"] ?? "",
+              "phoneNo": data["phone_no"] ?? "",
+              'balaceAtClose': data["balaceAtClose"] ?? 0,
+              'closeTotal_gram': data["closeTotal_gram"] ?? 0,
+              'closedAt': data["closedAt"],
+              'isClosed': data["isClosed"] ?? "false",
+              "address": data["address"] ?? "",
+              "place": data["place"] ?? "",
+              "balance": data["balance"] ?? 0,
+              "staffId": data["staffId"] ?? "",
+              "schemeType": data["schemeType"] ?? "",
+              "branch": data['branch'] ?? 0,
+              "dateofBirth": data['dateofBirth'],
+              "nominee": data['nominee'] ?? "",
+              "nomineePhone": data['nomineePhone'] ?? "",
+              "nomineeRelation": data['nomineeRelation'] ?? "",
+              "adharCard": data['adharCard'] ?? "",
+              "panCard": data['panCard'] ?? "",
+              "pinCode": data['pinCode'] ?? "",
+              "staffName": data['staffName'] ?? "",
+            };
+            userList.add(a);
+          }
+        }
+
+        DocumentSnapshot? newLastDoc =
+            querySnapshot.docs.isNotEmpty ? querySnapshot.docs.last : null;
+        bool hasMore = querySnapshot.docs.length == limit;
+
+        return {
+          "users": userList,
+          "lastDocument": newLastDoc,
+          "hasMore": hasMore,
+        };
+      } catch (fallbackError) {
+        print("Fallback getClosedUserPaginated error: $fallbackError");
+        return {
+          "users": <Map<String, dynamic>>[],
+          "lastDocument": null,
+          "hasMore": false,
+        };
+      }
+    }
   }
 
   // Function to update all customers

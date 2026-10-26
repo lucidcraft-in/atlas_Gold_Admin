@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:intl/intl.dart';
 
 class GoldrateModel {
   final String id;
@@ -83,7 +84,10 @@ class Goldrate with ChangeNotifier {
         'pavan': goldrateModel.pavan,
         'down': goldrateModel.down,
         'up': goldrateModel.up,
+        // 'timestamp': FieldValue.serverTimestamp(),
         'timestamp': FieldValue.serverTimestamp(),
+        'updateDate': DateFormat('dd-MM-yyyy').format(DateTime.now()),
+        'updateTime': DateFormat('hh:mm a').format(DateTime.now()),
         "18gram": eightAmt
       });
       notifyListeners();
@@ -106,7 +110,10 @@ class Goldrate with ChangeNotifier {
         'pavan': goldrateModel.pavan,
         'down': goldrateModel.down,
         'up': goldrateModel.up,
-        "18gram": eightAmt
+        "18gram": eightAmt,
+        'timestamp': FieldValue.serverTimestamp(),
+        'updateDate': DateFormat('dd-MM-yyyy').format(DateTime.now()),
+        'updateTime': DateFormat('hh:mm a').format(DateTime.now()),
       });
     } catch (e) {
       print(e);

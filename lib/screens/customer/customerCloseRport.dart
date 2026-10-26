@@ -1,14 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
-// Remove the month_picker_dialog import
-// import 'package:month_picker_dialog/month_picker_dialog.dart';
 import '../../constant/colors.dart';
 import 'package:provider/provider.dart';
 import '../../providers/user.dart';
 import '../../widget/monthPicker.dart';
-// Import our custom month picker
-// Make sure to create this file with our MonthPicker
 
 class CloseReport extends StatefulWidget {
   const CloseReport({super.key});
@@ -18,107 +15,228 @@ class CloseReport extends StatefulWidget {
 }
 
 class _CloseReportState extends State<CloseReport> {
-  getCloseUser() async {
-    Provider.of<User>(context, listen: false)
-        .getClosedUser(selectedDate)
-        .then((val) {
-      setState(() {
-        userList = val;
-      });
-    });
-  }
+  final ScrollController _scrollController = ScrollController();
+  DateTime selectedDate = DateTime.now();
+
+  List<Map<String, dynamic>> userList = [];
+  DocumentSnapshot? _lastDocument;
+  bool _isLoading = true;
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
+  final int _pageSize = 15;
 
   @override
   void initState() {
     super.initState();
-    getCloseUser();
+    _scrollController.addListener(_onScroll);
+    _loadInitialData();
   }
 
-  DateTime selectedDate = DateTime.now();
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.position.pixels;
+    if (currentScroll >= maxScroll - 200) {
+      if (!_isLoadingMore && _hasMore) {
+        _loadMoreData();
+      }
+    }
+  }
+
+  Future<void> _loadInitialData() async {
+    setState(() {
+      _isLoading = true;
+      _hasMore = true;
+      _lastDocument = null;
+      userList.clear();
+    });
+
+    try {
+      final result = await Provider.of<User>(context, listen: false)
+          .getClosedUserPaginated(
+        selectDate: selectedDate,
+        lastDocument: null,
+        limit: _pageSize,
+      );
+
+      if (mounted) {
+        setState(() {
+          userList = List<Map<String, dynamic>>.from(result["users"] ?? []);
+          _lastDocument = result["lastDocument"];
+          _hasMore = result["hasMore"] ?? false;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print("Error loading initial closed users: $e");
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _loadMoreData() async {
+    if (_isLoadingMore || !_hasMore) return;
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    try {
+      final result = await Provider.of<User>(context, listen: false)
+          .getClosedUserPaginated(
+        selectDate: selectedDate,
+        lastDocument: _lastDocument,
+        limit: _pageSize,
+      );
+
+      final List<Map<String, dynamic>> newUsers =
+          List<Map<String, dynamic>>.from(result["users"] ?? []);
+
+      if (mounted) {
+        setState(() {
+          userList.addAll(newUsers);
+          _lastDocument = result["lastDocument"];
+          _hasMore = result["hasMore"] ?? false;
+          _isLoadingMore = false;
+        });
+      }
+    } catch (e) {
+      print("Error loading more closed users: $e");
+      if (mounted) {
+        setState(() {
+          _isLoadingMore = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(
-          backgroundColor: useColor.homeIconColor,
-          title: const Text("Close Report"),
-        ),
-        body: Container(
-          width: double.infinity,
-          child: Column(
-            children: [
-              Container(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 10),
-                    const Text(
-                      "Select Month",
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        // Replace showMonthPicker with our custom showCustomMonthPicker
-                        showCustomMonthPicker(
-                          context: context,
-                          initialDate: selectedDate,
-                          firstDate: DateTime(DateTime.now().year - 1, 5),
-                          lastDate: DateTime(DateTime.now().year + 1, 14),
-                        ).then((date) {
-                          if (date != null) {
-                            setState(() {
-                              selectedDate = date;
-                            });
-                            Provider.of<User>(context, listen: false)
-                                .getClosedUser(selectedDate)
-                                .then((val) {
-                              setState(() {
-                                userList = val;
-                              });
-                            });
-                          }
-                          print(selectedDate);
-                        });
-                      },
-                      icon: Icon(Icons.calendar_today),
-                    )
-                  ],
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: useColor.homeIconColor,
+        title: const Text("Close Report"),
+      ),
+      body: SizedBox(
+        width: double.infinity,
+        child: Column(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: 10),
+                const Text(
+                  "Select Month",
+                  style: TextStyle(fontWeight: FontWeight.w600),
                 ),
-              ),
-              SizedBox(height: 10),
-              Text(
-                  "Selected Month : ${DateFormat('yyyy MMMM').format(selectedDate)}"),
-              Divider(),
-              userList.length > 0
-                  ? ListView.separated(
-                      shrinkWrap: true,
-                      itemBuilder: (context, index) {
-                        return ListTile(
-                          tileColor: Color.fromARGB(37, 128, 23, 23),
-                          title: Text(userList[index]["name"]),
-                          subtitle: Text(
-                              "Closing Balance : ${userList[index]["balaceAtClose"].toString()}"),
-                          trailing: IconButton(
-                              onPressed: () {
-                                _showCloseCustomerDialog(
-                                    context, userList[index]);
-                              },
-                              icon: Icon(FontAwesomeIcons.refresh)),
-                        );
-                      },
-                      separatorBuilder: (context, index) {
-                        return SizedBox(height: 10);
-                      },
-                      itemCount: userList.length)
-                  : Container(
-                      height: 150,
-                      child: Center(child: Text("No Data Found...")))
-            ],
-          ),
-        ));
+                IconButton(
+                  onPressed: () {
+                    showCustomMonthPicker(
+                      context: context,
+                      initialDate: selectedDate,
+                      firstDate: DateTime(DateTime.now().year - 1, 5),
+                      lastDate: DateTime(DateTime.now().year + 1, 14),
+                    ).then((date) {
+                      if (date != null) {
+                        setState(() {
+                          selectedDate = date;
+                        });
+                        _loadInitialData();
+                      }
+                    });
+                  },
+                  icon: const Icon(Icons.calendar_today),
+                )
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              "Selected Month : ${DateFormat('yyyy MMMM').format(selectedDate)}",
+            ),
+            const Divider(),
+            Expanded(
+              child: _buildList(),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
-  List userList = [];
+  Widget _buildList() {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (userList.isEmpty) {
+      return const Center(
+        child: Text(
+          "No Data Found...",
+          style: TextStyle(fontSize: 16, color: Colors.grey),
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadInitialData,
+      child: ListView.separated(
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        itemCount: userList.length + (_hasMore ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index == userList.length) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16.0),
+              child: Center(
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2.5),
+                ),
+              ),
+            );
+          }
+
+          final user = userList[index];
+          return ListTile(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            tileColor: const Color.fromARGB(37, 128, 23, 23),
+            title: Text(
+              user["name"]?.toString() ?? "",
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            subtitle: Text(
+              "Closing Balance : ${user["balaceAtClose"]?.toString() ?? '0'}",
+            ),
+            trailing: IconButton(
+              onPressed: () {
+                _showCloseCustomerDialog(context, user);
+              },
+              icon: const Icon(FontAwesomeIcons.refresh),
+            ),
+          );
+        },
+        separatorBuilder: (context, index) {
+          return const SizedBox(height: 10);
+        },
+      ),
+    );
+  }
 
   void _showCloseCustomerDialog(BuildContext context, var cust) {
     DateTime? selectedDate = DateTime.now(); // Holds the selected date
@@ -184,8 +302,7 @@ class _CloseReportState extends State<CloseReport> {
                               cust['closeTotal_gram'],
                               DateTime.now());
                       // Handle the reactivation logic here
-
-                      getCloseUser();
+                      _loadInitialData();
                       Navigator.of(context)
                           .pop(); // Close the dialog after reactivation
                     } else {
